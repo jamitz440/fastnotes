@@ -1,34 +1,30 @@
-# backend/app/main.py
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI  # type: ignore
+from fastapi.middleware.cors import CORSMiddleware  # type:ignore
 
-from .models import add_note, get_all_notes
+from app.database import create_db_and_tables
+from app.routes import folders, notes
 
-app = FastAPI(title="Simple Note API")
+app = FastAPI(title="Notes API")
 
-
-class NoteIn(BaseModel):
-    title: str
-    body: str
-
-
-class NoteOut(NoteIn):
-    id: int
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+# CORS - adjust origins for production
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-@app.get("/notes", response_model=list[NoteOut])
-def list_notes():
-    return get_all_notes()
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()
 
 
-@app.post("/notes", response_model=NoteOut, status_code=201)
-def create_note(note: NoteIn):
-    # Very tiny validation – you can expand later
-    if not note.title.strip():
-        raise HTTPException(status_code=400, detail="Title cannot be empty")
-    return add_note(note.title, note.body)
+app.include_router(notes.router, prefix="/api")
+app.include_router(folders.router, prefix="/api")
+
+
+@app.get("/")
+def root():
+    return {"message": "Notes API"}

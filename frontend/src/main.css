@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "@catppuccin/tailwindcss/macchiato.css";
+
+/* Override MDXEditor and all its children */
+[class*="mdxeditor"],
+._mdxeditor-root-content-editable,
+.mdxeditor-root-contenteditable,
+div[contenteditable="true"] {
+    color: var(--ctp-text) !important;
+}
+
+/* Override prose specifically */
+.prose,
+.prose * {
+    color: var(--ctp-text) !important;
+}
+
+/* Override list markers */
+.prose ul li::marker,
+.prose ol li::marker,
+ul li::marker,
+ol li::marker {
+    color: var(--ctp-text) !important;
+}
+
+.my-class {
+    background-color: var(--ctp-mantle) !important;
+    border-bottom: 1px solid var(--ctp-surface2) !important;
+}
+
+.my-class button {
+    color: var(--ctp-text) !important;
+    background-color: var(--ctp-surface0) !important;
+}
+
+.mdxeditor-popup-container > * {
+    background-color: var(--ctp-base) !important;
+}
