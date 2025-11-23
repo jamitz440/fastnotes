@@ -21,7 +21,13 @@ import {
 } from "../api/folders";
 import { NoteCreate, notesApi } from "../api/notes";
 import "../main.css";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 
 import "@mdxeditor/editor/style.css";
 import { DroppableFolder } from "../components/sidebar/DroppableFolder";
@@ -50,7 +56,13 @@ function Home() {
   const [newFolder, setNewFolder] = useState(false);
   const [newFolderText, setNewFolderText] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
-
+  const [encrypted, setEncrypted] = useState(false);
+  const pointer = useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 30,
+    },
+  });
+  const sensors = useSensors(pointer);
   useEffect(() => {
     loadFolderTree();
   }, []);
@@ -62,7 +74,12 @@ function Home() {
 
   const handleCreate = async () => {
     if (!title.trim()) return;
-    const newNote: NoteCreate = { title, content, folder_id: selectedFolder };
+    const newNote: NoteCreate = {
+      title,
+      content,
+      folder_id: selectedFolder,
+      encrypted,
+    };
     await notesApi.create(newNote);
     setTitle("");
     setContent("#");
@@ -96,6 +113,7 @@ function Home() {
   };
 
   const selectNote = (note: NoteRead) => {
+    console.log("setting note....   " + note.id);
     setSelectedNote(note);
     setTitle(note.title);
     setContent(note.content);
@@ -155,7 +173,7 @@ function Home() {
   };
 
   return (
-    <DndContext onDragEnd={handleDragEnd} autoScroll={false}>
+    <DndContext onDragEnd={handleDragEnd} autoScroll={false} sensors={sensors}>
       <div className="flex bg-ctp-base min-h-screen text-ctp-text">
         <div
           className="bg-ctp-mantle border-r-ctp-surface2 border-r overflow-hidden"
@@ -292,6 +310,11 @@ function Home() {
             ) : (
               <button onClick={handleCreate}>Create Note</button>
             )}
+            <input
+              type="checkbox"
+              checked={encrypted}
+              onChange={() => setEncrypted(!encrypted)}
+            />
           </div>
         </div>
       </div>
