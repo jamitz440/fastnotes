@@ -1,4 +1,5 @@
 import axios from "axios";
+import { decryptFolderTree, deriveKey } from "./encryption";
 
 const API_URL = import.meta.env.PROD ? "/api" : "http://localhost:8000/api";
 
@@ -35,8 +36,18 @@ export interface FolderCreate {
   parent_id: number | null;
 }
 
+const getFolderTree = async () => {
+  const { data } = await axios.get<FolderTreeResponse>(
+    `${API_URL}/folders/tree`,
+  );
+  var key = await deriveKey("Test");
+  const decryptedFolderTree = await decryptFolderTree(data, key);
+
+  return decryptedFolderTree;
+};
+
 export const folderApi = {
-  tree: () => axios.get<FolderTreeResponse>(`${API_URL}/folders/tree`),
+  tree: () => getFolderTree(),
   list: () => axios.get<Folder[]>(`${API_URL}/folders`),
   create: (folder: FolderCreate) =>
     axios.post<Folder>(`${API_URL}/folders`, folder),

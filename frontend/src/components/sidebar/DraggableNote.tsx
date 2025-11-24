@@ -27,7 +27,7 @@ export const DraggableNote = ({
       <div
         key={note.id}
         onClick={() => selectNote(note)}
-        className={`ml-5 rounded-md px-2 mb-0.5 select-none cursor-pointer font-light transition-all duration-150 flex items-center gap-1 ${
+        className={` rounded-md px-2 mb-0.5 select-none cursor-pointer font-light transition-all duration-150 flex items-center gap-1 ${
           selectedNote?.id === note.id
             ? "bg-ctp-mauve text-ctp-base"
             : "hover:bg-ctp-surface1"

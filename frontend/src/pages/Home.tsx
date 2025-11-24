@@ -68,7 +68,7 @@ function Home() {
   }, []);
 
   const loadFolderTree = async () => {
-    const { data } = await folderApi.tree();
+    const data = await folderApi.tree();
     setFolderTree(data);
   };
 
@@ -113,7 +113,7 @@ function Home() {
   };
 
   const selectNote = (note: NoteRead) => {
-    console.log("setting note....   " + note.id);
+    console.log(note);
     setSelectedNote(note);
     setTitle(note.title);
     setContent(note.content);
@@ -146,14 +146,16 @@ function Home() {
         selectedFolder={selectedFolder}
         selectedNote={selectedNote}
       />
-      {folder.notes.map((note) => (
-        <DraggableNote
-          key={note.id}
-          note={note}
-          selectNote={selectNote}
-          selectedNote={selectedNote}
-        />
-      ))}
+      <div className="flex flex-col ml-5">
+        {folder.notes.map((note) => (
+          <DraggableNote
+            key={note.id}
+            note={note}
+            selectNote={selectNote}
+            selectedNote={selectedNote}
+          />
+        ))}
+      </div>
       {folder.children.map((child) => renderFolder(child, depth + 1))}
     </div>
   );
@@ -176,14 +178,9 @@ function Home() {
     <DndContext onDragEnd={handleDragEnd} autoScroll={false} sensors={sensors}>
       <div className="flex bg-ctp-base min-h-screen text-ctp-text">
         <div
-          className="bg-ctp-mantle border-r-ctp-surface2 border-r overflow-hidden"
-          style={{
-            width: "300px",
-            padding: "1rem",
-            overflowY: "auto",
-          }}
-          onDragOver={(e) => e.preventDefault()} // Add this
-          onTouchMove={(e) => e.preventDefault()} // And this for touch devices
+          className="bg-ctp-mantle border-r-ctp-surface2 border-r overflow-hidden w-[300px] p-4 overflow-y-auto sm:block hidden"
+          onDragOver={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
         >
           <h2>Notes</h2>
           <button
@@ -237,33 +234,22 @@ function Home() {
           {/* Render orphaned notes */}
           {folderTree?.orphaned_notes &&
             folderTree.orphaned_notes.length > 0 && (
-              <div className="mt-4">
+              <div className="mt-4 flex flex-col">
                 <div className="text-ctp-subtext0 text-sm mb-1">Unsorted</div>
                 {folderTree.orphaned_notes.map((note) => (
-                  <div
+                  <DraggableNote
                     key={note.id}
-                    onClick={() => selectNote(note)}
-                    className={`rounded-md px-2 mb-0.5 select-none cursor-pointer font-light transition-all duration-150 flex items-center gap-1 ${
-                      selectedNote?.id === note.id
-                        ? "bg-ctp-mauve text-ctp-base"
-                        : "hover:bg-ctp-surface1"
-                    }`}
-                  >
-                    <i className="fadr fa-file text-xs"></i>
-                    <span>{note.title}</span>
-                  </div>
+                    note={note}
+                    selectNote={selectNote}
+                    selectedNote={selectedNote}
+                  />
                 ))}
               </div>
             )}
         </div>
-        <div
-          style={{
-            flex: 1,
-            padding: "1rem",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+
+        <div className="flex flex-col w-full">
+          <div className="w-full bg-ctp-crust h-4"></div>
           <input
             type="text"
             placeholder="Note title..."
