@@ -1,7 +1,9 @@
 import {
   codeBlockPlugin,
   codeMirrorPlugin,
+  diffSourcePlugin,
   headingsPlugin,
+  imagePlugin,
   linkPlugin,
   listsPlugin,
   markdownShortcutPlugin,
@@ -9,6 +11,7 @@ import {
   quotePlugin,
   SandpackConfig,
   sandpackPlugin,
+  tablePlugin,
   thematicBreakPlugin,
 } from "@mdxeditor/editor";
 import { useEffect, useRef, useState } from "react";
@@ -32,6 +35,8 @@ import {
 import "@mdxeditor/editor/style.css";
 import { DroppableFolder } from "../components/sidebar/DroppableFolder";
 import { DraggableNote } from "../components/sidebar/DraggableNote";
+import CheckIcon from "../assets/fontawesome/svg/circle-check.svg?react";
+import SpinnerIcon from "../assets/fontawesome/svg/rotate.svg?react";
 
 const simpleSandpackConfig: SandpackConfig = {
   defaultPreset: "react",
@@ -52,20 +57,42 @@ function Home() {
   const [folderTree, setFolderTree] = useState<FolderTreeResponse | null>(null);
   const [selectedNote, setSelectedNote] = useState<NoteRead | null>(null);
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("#");
+  const [content, setContent] = useState("");
   const [newFolder, setNewFolder] = useState(false);
   const [newFolderText, setNewFolderText] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [encrypted, setEncrypted] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
   const pointer = useSensor(PointerSensor, {
     activationConstraint: {
       distance: 30,
     },
   });
   const sensors = useSensors(pointer);
+
+  const newFolderRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     loadFolderTree();
   }, []);
+
+  useEffect(() => {
+    if (newFolder && newFolderRef.current) {
+      newFolderRef.current.focus();
+    }
+  }, [newFolder]);
+
+  useEffect(() => {
+    if (!selectedNote) return;
+
+    const timer = setTimeout(async () => {
+      setUpdating(true);
+      handleUpdate();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [content, title]);
 
   const loadFolderTree = async () => {
     const data = await folderApi.tree();
@@ -82,7 +109,7 @@ function Home() {
     };
     await notesApi.create(newNote);
     setTitle("");
-    setContent("#");
+    setContent("");
     loadFolderTree();
   };
 
@@ -101,52 +128,46 @@ function Home() {
   const handleUpdate = async () => {
     if (!selectedNote) return;
     await notesApi.update(selectedNote.id, { title, content });
-    setSelectedNote(null);
-    setTitle("");
-    setContent("#");
     loadFolderTree();
+    setTimeout(() => {
+      setUpdating(false);
+    }, 1000);
   };
 
   const handleDelete = async (id: number) => {
     await notesApi.delete(id);
     loadFolderTree();
+    clearSelection();
   };
 
   const selectNote = (note: NoteRead) => {
-    console.log(note);
     setSelectedNote(note);
     setTitle(note.title);
-    setContent(note.content);
+
+    let cleanContent = note.content.replace(/\\([_\-\[\]\(\)])/g, "$1");
+    cleanContent = cleanContent.replace(/^```\s*$/gm, "");
+    setContent(cleanContent);
   };
 
   const clearSelection = () => {
     setSelectedNote(null);
     setTitle("");
-    setContent("#");
+    setContent("");
   };
-
-  const newFolderRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (newFolder && newFolderRef.current) {
-      newFolderRef.current.focus();
-    }
-  }, [newFolder]);
 
   const renderFolder = (folder: FolderTreeNode, depth: number = 0) => (
     <div
       key={folder.id}
-      style={{ marginLeft: depth > 0 ? "1rem" : "0" }}
       className="flex flex-col"
+      style={{ marginLeft: depth > 0 ? "1.5rem" : "0" }}
     >
       <DroppableFolder
-        key={folder.id}
         folder={folder}
         setSelectedFolder={setSelectedFolder}
         selectedFolder={selectedFolder}
         selectedNote={selectedNote}
       />
-      <div className="flex flex-col ml-5">
+      <div className="flex flex-col gap-0.5 ml-6">
         {folder.notes.map((note) => (
           <DraggableNote
             key={note.id}
@@ -164,9 +185,6 @@ function Home() {
     const { active, over } = event;
     if (!over) return;
 
-    console.log(active.data);
-    console.log(over.data);
-
     await notesApi.update(active.id as number, {
       folder_id: over.id as number,
     });
@@ -176,66 +194,69 @@ function Home() {
 
   return (
     <DndContext onDragEnd={handleDragEnd} autoScroll={false} sensors={sensors}>
-      <div className="flex bg-ctp-base min-h-screen text-ctp-text">
+      <div className="flex bg-ctp-base h-screen text-ctp-text overflow-hidden">
+        {/* Sidebar */}
         <div
-          className="bg-ctp-mantle border-r-ctp-surface2 border-r overflow-hidden w-[300px] p-4 overflow-y-auto sm:block hidden"
+          className="bg-ctp-mantle border-r border-ctp-surface2 w-[300px] p-4 overflow-y-auto sm:block hidden flex-shrink-0 flex flex-col gap-3"
           onDragOver={(e) => e.preventDefault()}
           onTouchMove={(e) => e.preventDefault()}
         >
-          <h2>Notes</h2>
-          <button
-            onClick={clearSelection}
-            style={{ marginBottom: "1rem", width: "100%" }}
-          >
-            New Note
-          </button>
-          <div className="flex gap-2 mb-2">
-            <button
-              onClick={() => {
-                if (newFolder && newFolderRef.current) {
-                  newFolderRef.current.focus();
-                }
-                setNewFolder(true);
-              }}
-              className="hover:bg-ctp-mauve group transition-colors rounded-md p-1 text-center flex"
-            >
-              <i className="fadr fa-folder-plus text-xl text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
-            </button>
-            <button
-              onClick={clearSelection}
-              className="hover:bg-ctp-mauve group transition-colors rounded-md p-1 text-center flex"
-            >
-              <i className="fadr fa-file-circle-plus text-xl text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
-            </button>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold text-ctp-text">FastNotes</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setNewFolder(true)}
+                className="hover:bg-ctp-mauve group transition-colors rounded-md p-1.5"
+                title="New folder"
+              >
+                <i className="fadr fa-folder-plus text-base text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
+              </button>
+              <button
+                onClick={clearSelection}
+                className="hover:bg-ctp-mauve group transition-colors rounded-md p-1.5"
+                title="New note"
+              >
+                <i className="fadr fa-file-circle-plus text-base text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
+              </button>
+            </div>
           </div>
 
+          {/* New folder input */}
           {newFolder && (
-            <div className="px-1 mb-1">
+            <div className="mb-2">
               <input
                 onBlur={() => setNewFolder(false)}
                 onChange={(e) => setNewFolderText(e.target.value)}
                 value={newFolderText}
                 type="text"
-                placeholder="new folder"
-                className="border-ctp-mauve border rounded-md px-2 w-full focus:outline-none focus:ring-1 focus:ring-ctp-mauve focus:border-ctp-mauve bg-ctp-base"
+                placeholder="Folder name..."
+                className="border border-ctp-mauve rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-ctp-mauve bg-ctp-base text-ctp-text placeholder:text-ctp-overlay0"
                 ref={newFolderRef}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleCreateFolder();
+                  }
+                  if (e.key === "Escape") {
+                    setNewFolder(false);
                   }
                 }}
               />
             </div>
           )}
 
-          {/* Render folder tree */}
-          {folderTree?.folders.map((folder) => renderFolder(folder))}
+          {/* Folder tree */}
+          <div className="flex flex-col gap-1">
+            {folderTree?.folders.map((folder) => renderFolder(folder))}
+          </div>
 
-          {/* Render orphaned notes */}
+          {/* Orphaned notes */}
           {folderTree?.orphaned_notes &&
             folderTree.orphaned_notes.length > 0 && (
-              <div className="mt-4 flex flex-col">
-                <div className="text-ctp-subtext0 text-sm mb-1">Unsorted</div>
+              <div className="mt-4 flex flex-col gap-1">
+                {/*<div className="text-ctp-subtext0 text-sm font-medium mb-1 px-2">
+                  Unsorted
+                </div>*/}
                 {folderTree.orphaned_notes.map((note) => (
                   <DraggableNote
                     key={note.id}
@@ -248,60 +269,120 @@ function Home() {
             )}
         </div>
 
-        <div className="flex flex-col w-full">
-          <div className="w-full bg-ctp-crust h-4"></div>
-          <input
-            type="text"
-            placeholder="Note title..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            style={{
-              padding: "0.5rem",
-              marginBottom: "1rem",
-              fontSize: "1.5rem",
-              border: "1px solid #ccc",
-            }}
-          />
-          <MDXEditor
-            markdown={content}
-            key={selectedNote?.id || "new"}
-            onChange={setContent}
-            className="prose text-ctp-text"
-            plugins={[
-              headingsPlugin(),
-              listsPlugin(),
-              quotePlugin(),
-              thematicBreakPlugin(),
-              linkPlugin(),
-              codeBlockPlugin({ defaultCodeBlockLanguage: "js" }),
-              sandpackPlugin({ sandpackConfig: simpleSandpackConfig }),
-              codeMirrorPlugin({
-                codeBlockLanguages: { js: "JavaScript", css: "CSS" },
-              }),
-              markdownShortcutPlugin(),
-            ]}
-          />
-          <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
+        {/* Main editor area */}
+        <div className="flex flex-col w-full h-screen overflow-hidden">
+          {/* Top accent bar */}
+          <div className="w-full bg-ctp-crust h-1 shrink-0"></div>
+
+          {/* Content area with padding */}
+          <div className="flex-1 flex flex-col overflow-y-auto px-8 py-6">
+            {/* Title input */}
+            <input
+              type="text"
+              placeholder="Untitled note..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-0 py-3 mb-4 text-3xl font-semibold bg-transparent border-b border-ctp-surface2 focus:outline-none focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
+            />
+
+            {/* Editor */}
+            <div className="flex-1">
+              <MDXEditor
+                markdown={content}
+                key={selectedNote?.id || "new"}
+                onChange={setContent}
+                className="prose prose-invert max-w-none text-ctp-text h-full"
+                plugins={[
+                  headingsPlugin(),
+                  tablePlugin(),
+                  listsPlugin(),
+                  quotePlugin(),
+                  thematicBreakPlugin(),
+                  linkPlugin(),
+                  codeBlockPlugin({ defaultCodeBlockLanguage: "js" }),
+                  sandpackPlugin({ sandpackConfig: simpleSandpackConfig }),
+                  codeMirrorPlugin({
+                    codeBlockLanguages: {
+                      js: "JavaScript",
+                      css: "CSS",
+                      python: "Python",
+                      typescript: "TypeScript",
+                    },
+                  }),
+                  imagePlugin(),
+                  markdownShortcutPlugin(),
+                  diffSourcePlugin({
+                    viewMode: "rich-text",
+                  }),
+                ]}
+              />
+            </div>
+          </div>
+
+          {/* Action bar */}
+          <div className="flex items-center gap-3 px-8 py-4 border-t border-ctp-surface2 bg-ctp-mantle shrink-0">
             {selectedNote ? (
               <>
-                <button onClick={handleUpdate}>Update Note</button>
+                <button
+                  onClick={handleUpdate}
+                  className="px-2 py-0.5 bg-ctp-blue text-ctp-base rounded-lg hover:bg-ctp-sapphire transition-colors font-medium shadow-sm"
+                >
+                  Save
+                </button>
                 <button
                   onClick={() => handleDelete(selectedNote.id)}
-                  className="bg-ctp-red rounded-md px-1 text-ctp-crust"
+                  className="px-2 py-0.5 bg-ctp-red text-ctp-base rounded-lg hover:bg-ctp-maroon transition-colors font-medium shadow-sm"
                 >
                   Delete
                 </button>
-                <button onClick={clearSelection}>Cancel</button>
+                <button
+                  onClick={clearSelection}
+                  className="px-2 py-0.5 bg-ctp-surface0 text-ctp-text rounded-lg hover:bg-ctp-surface1 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
               </>
             ) : (
-              <button onClick={handleCreate}>Create Note</button>
+              <button
+                onClick={handleCreate}
+                className="px-2 py-0.5 bg-ctp-green text-ctp-base rounded-lg hover:bg-ctp-teal transition-colors font-medium shadow-sm"
+              >
+                Create Note
+              </button>
             )}
-            <input
-              type="checkbox"
-              checked={encrypted}
-              onChange={() => setEncrypted(!encrypted)}
-            />
+
+            {/* Encryption toggle */}
+            {/*<label className="flex items-center gap-2 ml-auto cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={encrypted}
+                onChange={() => setEncrypted(!encrypted)}
+                className="w-4 h-4 rounded border-ctp-surface2 text-ctp-mauve focus:ring-ctp-mauve focus:ring-offset-ctp-base cursor-pointer"
+              />
+              <span className="text-sm text-ctp-subtext0 group-hover:text-ctp-text transition-colors">
+                Encrypt
+              </span>
+            </label>*/}
           </div>
+        </div>
+
+        {/* Status indicator */}
+        <div className="fixed bottom-4 right-4 bg-ctp-surface0 border border-ctp-surface2 rounded-lg px-2 py-0.5 flex items-center gap-2.5 shadow-lg backdrop-blur-sm">
+          {updating ? (
+            <>
+              <SpinnerIcon className="animate-spin h-4 w-4 [&_.fa-primary]:fill-ctp-blue [&_.fa-secondary]:fill-ctp-sapphire" />
+              <span className="text-sm text-ctp-subtext0 font-medium">
+                Saving...
+              </span>
+            </>
+          ) : (
+            <>
+              <CheckIcon className="h-4 w-4 [&_.fa-primary]:fill-ctp-green [&_.fa-secondary]:fill-ctp-teal" />
+              <span className="text-sm text-ctp-subtext0 font-medium">
+                Saved
+              </span>
+            </>
+          )}
         </div>
       </div>
     </DndContext>

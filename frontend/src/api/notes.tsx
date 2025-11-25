@@ -51,11 +51,26 @@ const fetchNotes = async () => {
   return decryptedNotes;
 };
 
+const updateNote = async (id: number, note: Partial<Note>) => {
+  var key = await deriveKey("Test");
+  var encryptedNote: Partial<Note> = {};
+  if (note.content) {
+    encryptedNote.content = await encryptString(note.content, key);
+  }
+  if (note.title) {
+    encryptedNote.title = await encryptString(note.title, key);
+  }
+  if (note.folder_id) {
+    encryptedNote.folder_id = note.folder_id;
+  }
+
+  return axios.patch(`${API_URL}/notes/${id}`, encryptedNote);
+};
+
 export const notesApi = {
   list: () => fetchNotes(),
   get: (id: number) => axios.get(`${API_URL}/notes/${id}`),
   create: (note: NoteCreate) => createNote(note),
-  update: (id: number, note: Partial<Note>) =>
-    axios.patch(`${API_URL}/notes/${id}`, note),
+  update: (id: number, note: Partial<Note>) => updateNote(id, note),
   delete: (id: number) => axios.delete(`${API_URL}/notes/${id}`),
 };
