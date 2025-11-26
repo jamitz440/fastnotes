@@ -7,13 +7,13 @@
 ._mdxeditor-root-content-editable,
 .mdxeditor-root-contenteditable,
 div[contenteditable="true"] {
-    color: var(--ctp-text) !important;
+    color: var(--color-ctp-text) !important;
 }
 
 /* Override prose specifically */
 .prose,
 .prose * {
-    color: var(--ctp-text) !important;
+    color: var(--color-ctp-text) !important;
 }
 
 /* Override list markers */
@@ -21,21 +21,37 @@ div[contenteditable="true"] {
 .prose ol li::marker,
 ul li::marker,
 ol li::marker {
-    color: var(--ctp-text) !important;
+    color: var(--color-ctp-text) !important;
 }
 
 .my-class {
-    background-color: var(--ctp-mantle) !important;
-    border-bottom: 1px solid var(--ctp-surface2) !important;
+    background-color: var(--color-ctp-mantle) !important;
+    border-bottom: 1px solid var(--color-ctp-surface2) !important;
 }
 
 .my-class button {
-    color: var(--ctp-text) !important;
-    background-color: var(--ctp-surface0) !important;
+    color: var(--color-ctp-text) !important;
+    background-color: var(--color-ctp-surface0) !important;
+}
+
+_listItemChecked_1tncs_73::before {
+    background-color: var(--color-ctp-mauve);
 }
 
 .mdxeditor-popup-container > * {
-    background-color: var(--ctp-base) !important;
+    background-color: var(--color-ctp-base) !important;
 }
 
+.toolbar {
+    background-color: var(--color-ctp-crust) !important;
+}
 
+._listItemChecked_1tncs_73::before {
+    --accentSolid: var(--color-ctp-mauve) !important;
+    border-color: var(--color-ctp-mauve-900) !important;
+    border: 2px;
+}
+
+._listItemChecked_1tncs_73::after {
+    border-color: var(--color-ctp-mauve-900) !important;
+}

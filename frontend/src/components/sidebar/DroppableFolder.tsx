@@ -7,11 +7,15 @@ export const DroppableFolder = ({
   setSelectedFolder,
   selectedFolder,
   selectedNote,
+  setCollapse,
+  collapse,
 }: {
   folder: Partial<Folder>;
   setSelectedFolder: React.Dispatch<React.SetStateAction<number | null>>;
   selectedFolder: number | null;
   selectedNote: NoteRead | null;
+  setCollapse: React.Dispatch<React.SetStateAction<boolean>>;
+  collapse: boolean;
 }) => {
   const { isOver, setNodeRef } = useDroppable({
     id: folder.id!,
@@ -34,6 +38,9 @@ export const DroppableFolder = ({
       >
         <i className="fadr fa-folder text-sm"></i>
         {folder.name}
+        <div onClick={() => setCollapse(!collapse)} className="ml-auto">
+          x
+        </div>
       </div>
     </div>
   );

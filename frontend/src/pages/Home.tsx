@@ -1,4 +1,5 @@
 import {
+  BoldItalicUnderlineToggles,
   codeBlockPlugin,
   codeMirrorPlugin,
   diffSourcePlugin,
@@ -13,8 +14,11 @@ import {
   sandpackPlugin,
   tablePlugin,
   thematicBreakPlugin,
+  toolbarPlugin,
+  UndoRedo,
+  DiffSourceToggleWrapper,
 } from "@mdxeditor/editor";
-import { useEffect, useRef, useState } from "react";
+import { SetStateAction, useEffect, useRef, useState } from "react";
 import {
   folderApi,
   FolderCreate,
@@ -155,32 +159,6 @@ function Home() {
     setContent("");
   };
 
-  const renderFolder = (folder: FolderTreeNode, depth: number = 0) => (
-    <div
-      key={folder.id}
-      className="flex flex-col"
-      style={{ marginLeft: depth > 0 ? "1.5rem" : "0" }}
-    >
-      <DroppableFolder
-        folder={folder}
-        setSelectedFolder={setSelectedFolder}
-        selectedFolder={selectedFolder}
-        selectedNote={selectedNote}
-      />
-      <div className="flex flex-col gap-0.5 ml-6">
-        {folder.notes.map((note) => (
-          <DraggableNote
-            key={note.id}
-            note={note}
-            selectNote={selectNote}
-            selectedNote={selectedNote}
-          />
-        ))}
-      </div>
-      {folder.children.map((child) => renderFolder(child, depth + 1))}
-    </div>
-  );
-
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -247,7 +225,17 @@ function Home() {
 
           {/* Folder tree */}
           <div className="flex flex-col gap-1">
-            {folderTree?.folders.map((folder) => renderFolder(folder))}
+            {folderTree?.folders.map((folder) => (
+              <RenderFolder
+                key={folder.id}
+                folder={folder}
+                depth={0}
+                setSelectedFolder={setSelectedFolder}
+                selectedFolder={selectedFolder}
+                selectedNote={selectedNote}
+                selectNote={selectNote}
+              />
+            ))}
           </div>
 
           {/* Orphaned notes */}
@@ -291,9 +279,20 @@ function Home() {
                 markdown={content}
                 key={selectedNote?.id || "new"}
                 onChange={setContent}
-                className="prose prose-invert max-w-none text-ctp-text h-full"
+                className="prose prose-invert max-w-none text-ctp-text h-full dark-editor dark-mode"
                 plugins={[
                   headingsPlugin(),
+                  toolbarPlugin({
+                    toolbarClassName: "toolbar",
+                    toolbarContents: () => (
+                      <>
+                        <UndoRedo />
+                        <BoldItalicUnderlineToggles />
+                        <DiffSourceToggleWrapper />
+                      </>
+                    ),
+                  }),
+
                   tablePlugin(),
                   listsPlugin(),
                   quotePlugin(),
@@ -307,12 +306,14 @@ function Home() {
                       css: "CSS",
                       python: "Python",
                       typescript: "TypeScript",
+                      html: "HTML",
                     },
                   }),
                   imagePlugin(),
                   markdownShortcutPlugin(),
                   diffSourcePlugin({
                     viewMode: "rich-text",
+                    diffMarkdown: "boo",
                   }),
                 ]}
               />
@@ -390,3 +391,65 @@ function Home() {
 }
 
 export default Home;
+
+interface RenderFolderProps {
+  folder: FolderTreeNode;
+  depth?: number;
+  setSelectedFolder: React.Dispatch<SetStateAction<number | null>>;
+  selectedFolder: number | null;
+  selectedNote: NoteRead | null;
+  selectNote: (note: NoteRead) => void;
+}
+
+const RenderFolder = ({
+  folder,
+  depth = 0,
+  setSelectedFolder,
+  selectedFolder,
+  selectedNote,
+  selectNote,
+}: RenderFolderProps) => {
+  const [collapse, setCollapse] = useState(false);
+
+  return (
+    <div
+      key={folder.id}
+      className="flex flex-col"
+      style={{ marginLeft: depth > 0 ? "1.5rem" : "0" }}
+    >
+      <DroppableFolder
+        folder={folder}
+        setSelectedFolder={setSelectedFolder}
+        selectedFolder={selectedFolder}
+        selectedNote={selectedNote}
+        setCollapse={setCollapse}
+        collapse={collapse}
+      />
+      {collapse && (
+        <>
+          <div className="flex flex-col gap-0.5 ml-6">
+            {folder.notes.map((note) => (
+              <DraggableNote
+                key={note.id}
+                note={note}
+                selectNote={selectNote}
+                selectedNote={selectedNote}
+              />
+            ))}
+          </div>
+          {folder.children.map((child) => (
+            <RenderFolder
+              key={child.id}
+              folder={child}
+              depth={depth + 1}
+              setSelectedFolder={setSelectedFolder}
+              selectedFolder={selectedFolder}
+              selectedNote={selectedNote}
+              selectNote={selectNote}
+            />
+          ))}
+        </>
+      )}
+    </div>
+  );
+};
