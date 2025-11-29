@@ -17,7 +17,6 @@ export interface NoteCreate {
   title: string;
   content: string;
   folder_id: number | null;
-  encrypted: boolean;
 }
 
 const createNote = async (note: NoteCreate) => {

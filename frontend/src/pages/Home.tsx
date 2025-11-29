@@ -41,6 +41,8 @@ import { DroppableFolder } from "../components/sidebar/DroppableFolder";
 import { DraggableNote } from "../components/sidebar/DraggableNote";
 import CheckIcon from "../assets/fontawesome/svg/circle-check.svg?react";
 import SpinnerIcon from "../assets/fontawesome/svg/rotate.svg?react";
+import { useNoteStore } from "../stores/notesStore";
+import { create } from "zustand";
 
 const simpleSandpackConfig: SandpackConfig = {
   defaultPreset: "react",
@@ -58,7 +60,7 @@ const simpleSandpackConfig: SandpackConfig = {
 };
 
 function Home() {
-  const [folderTree, setFolderTree] = useState<FolderTreeResponse | null>(null);
+  // const [folderTree, setFolderTree] = useState<FolderTreeResponse | null>(null);
   const [selectedNote, setSelectedNote] = useState<NoteRead | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -67,6 +69,9 @@ function Home() {
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [encrypted, setEncrypted] = useState(false);
   const [updating, setUpdating] = useState(false);
+
+  const { folderTree, loadFolderTree, createNote, createFolder, updateNote } =
+    useNoteStore();
 
   const pointer = useSensor(PointerSensor, {
     activationConstraint: {
@@ -98,41 +103,21 @@ function Home() {
     return () => clearTimeout(timer);
   }, [content, title]);
 
-  const loadFolderTree = async () => {
-    const data = await folderApi.tree();
-    setFolderTree(data);
-  };
 
   const handleCreate = async () => {
     if (!title.trim()) return;
-    const newNote: NoteCreate = {
-      title,
-      content,
-      folder_id: selectedFolder,
-      encrypted,
-    };
-    await notesApi.create(newNote);
-    setTitle("");
-    setContent("");
-    loadFolderTree();
+    await createNote({ title, content, folder_id: null });
   };
 
   const handleCreateFolder = async () => {
     if (!newFolderText.trim()) return;
-    const newFolderData: FolderCreate = {
-      name: newFolderText,
-      parent_id: null,
-    };
-    await folderApi.create(newFolderData);
-    setNewFolderText("");
-    loadFolderTree();
-    setNewFolder(false);
+    await createFolder({ name: newFolderText, parent_id: null });
   };
 
   const handleUpdate = async () => {
     if (!selectedNote) return;
-    await notesApi.update(selectedNote.id, { title, content });
-    loadFolderTree();
+    await updateNote(selectedNote.id, { title, content });
+
     setTimeout(() => {
       setUpdating(false);
     }, 1000);
