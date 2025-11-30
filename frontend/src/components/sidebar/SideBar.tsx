@@ -17,6 +17,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { notesApi } from "../../api/notes";
+import { RecursiveFolder } from "./RecursiveFolder";
 
 export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
   // const [folderTree, setFolderTree] = useState<FolderTreeResponse | null>(null);
@@ -143,15 +144,7 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
         {/* Folder tree */}
         <div className="flex flex-col gap-1">
           {folderTree?.folders.map((folder) => (
-            <RenderFolder
-              key={folder.id}
-              folder={folder}
-              depth={0}
-              setSelectedFolder={setSelectedFolder}
-              selectedFolder={selectedFolder}
-              selectedNote={selectedNote}
-              selectNote={setSelectedNote}
-            />
+            <RecursiveFolder key={folder.id} folder={folder} depth={0} />
           ))}
         </div>
 
@@ -162,12 +155,7 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
             Unsorted
           </div>*/}
             {folderTree.orphaned_notes.map((note) => (
-              <DraggableNote
-                key={note.id}
-                note={note}
-                selectNote={setSelectedNote}
-                selectedNote={selectedNote}
-              />
+              <DraggableNote key={note.id} note={note} />
             ))}
           </div>
         )}
@@ -202,68 +190,6 @@ export const SidebarHeader = ({
           <i className="fadr fa-file-circle-plus text-base text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
         </button>
       </div>
-    </div>
-  );
-};
-
-interface RenderFolderProps {
-  folder: FolderTreeNode;
-  depth?: number;
-  setSelectedFolder: (id: number | null) => void;
-  selectedFolder: number | null;
-  selectedNote: NoteRead | null;
-  selectNote: (note: NoteRead) => void;
-}
-
-const RenderFolder = ({
-  folder,
-  depth = 0,
-  setSelectedFolder,
-  selectedFolder,
-  selectedNote,
-  selectNote,
-}: RenderFolderProps) => {
-  const [collapse, setCollapse] = useState(false);
-
-  return (
-    <div
-      key={folder.id}
-      className="flex flex-col"
-      style={{ marginLeft: depth > 0 ? "1.5rem" : "0" }}
-    >
-      <DroppableFolder
-        folder={folder}
-        setSelectedFolder={setSelectedFolder}
-        selectedFolder={selectedFolder}
-        selectedNote={selectedNote}
-        setCollapse={setCollapse}
-        collapse={collapse}
-      />
-      {collapse && (
-        <>
-          <div className="flex flex-col gap-0.5 ml-6">
-            {folder.notes.map((note) => (
-              <DraggableNote
-                key={note.id}
-                note={note}
-                selectNote={selectNote}
-                selectedNote={selectedNote}
-              />
-            ))}
-          </div>
-          {folder.children.map((child) => (
-            <RenderFolder
-              key={child.id}
-              folder={child}
-              depth={depth + 1}
-              setSelectedFolder={setSelectedFolder}
-              selectedFolder={selectedFolder}
-              selectedNote={selectedNote}
-              selectNote={selectNote}
-            />
-          ))}
-        </>
-      )}
     </div>
   );
 };

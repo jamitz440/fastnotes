@@ -1,22 +1,19 @@
 import React from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Folder, NoteRead } from "../../api/folders";
+import { useNoteStore } from "../../stores/notesStore";
 
 export const DroppableFolder = ({
   folder,
-  setSelectedFolder,
-  selectedFolder,
-  selectedNote,
   setCollapse,
   collapse,
 }: {
   folder: Partial<Folder>;
-  setSelectedFolder: (id: number | null) => void;
-  selectedFolder: number | null;
-  selectedNote: NoteRead | null;
   setCollapse: React.Dispatch<React.SetStateAction<boolean>>;
   collapse: boolean;
 }) => {
+  const { setSelectedFolder, selectedFolder, selectedNote } = useNoteStore();
+
   const { isOver, setNodeRef: setDroppableRef } = useDroppable({
     id: folder.id!,
     data: { type: "folder", folder },

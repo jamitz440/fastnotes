@@ -2,16 +2,11 @@ import React from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { Note } from "../../api/notes";
 import { NoteRead } from "../../api/folders";
+import { useNoteStore } from "../../stores/notesStore";
 
-export const DraggableNote = ({
-  note,
-  selectNote,
-  selectedNote,
-}: {
-  note: NoteRead;
-  selectNote: (note: NoteRead) => void;
-  selectedNote: NoteRead | null;
-}) => {
+export const DraggableNote = ({ note }: { note: NoteRead }) => {
+  const { selectedNote, setSelectedNote } = useNoteStore();
+
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: note.id,
     data: { type: "note", note },
@@ -26,14 +21,16 @@ export const DraggableNote = ({
     <button ref={setNodeRef} style={style} {...listeners} {...attributes}>
       <div
         key={note.id}
-        onClick={() => selectNote(note)}
+        onClick={() => setSelectedNote(note)}
         className={` rounded-md px-2 mb-0.5 select-none cursor-pointer font-light transition-all duration-150 flex items-center gap-1 ${
           selectedNote?.id === note.id
             ? "bg-ctp-mauve text-ctp-base"
             : "hover:bg-ctp-surface1"
         }`}
       >
-        <span>{note.title}</span>
+        <span>
+          {selectedNote?.id == note.id ? selectedNote.title : note.title}
+        </span>
       </div>
     </button>
   );
