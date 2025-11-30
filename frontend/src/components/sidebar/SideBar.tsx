@@ -1,12 +1,29 @@
-import { useState, useRef, useEffect } from "react";
-import { FolderCreate, FolderTreeResponse, folderApi } from "../../api/folders";
+import React, { useState, useRef, useEffect, SetStateAction } from "react";
+import {
+  FolderCreate,
+  FolderTreeNode,
+  FolderTreeResponse,
+  NoteRead,
+  folderApi,
+} from "../../api/folders";
 import { DraggableNote } from "./DraggableNote";
+import { DroppableFolder } from "./DroppableFolder";
+import { useNoteStore } from "../../stores/notesStore";
 
-export const Sidebar = () => {
-  const [folderTree, setFolderTree] = useState<FolderTreeResponse | null>(null);
+export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
+  // const [folderTree, setFolderTree] = useState<FolderTreeResponse | null>(null);
   const [newFolder, setNewFolder] = useState(false);
   const [newFolderText, setNewFolderText] = useState("");
   const newFolderRef = useRef<HTMLInputElement>(null);
+
+  const {
+    setSelectedFolder,
+    selectedFolder,
+    folderTree,
+    loadFolderTree,
+    selectedNote,
+    setSelectedNote,
+  } = useNoteStore();
 
   useEffect(() => {
     if (newFolder && newFolderRef.current) {
@@ -30,18 +47,16 @@ export const Sidebar = () => {
     setNewFolder(false);
   };
 
-  const loadFolderTree = async () => {
-    const data = await folderApi.tree();
-    setFolderTree(data);
-  };
-
   return (
     <div
       className="bg-ctp-mantle border-r border-ctp-surface2 w-[300px] p-4 overflow-y-auto sm:block hidden  flex-col gap-3"
       onDragOver={(e) => e.preventDefault()}
       onTouchMove={(e) => e.preventDefault()}
     >
-      <SidebarHeader />
+      <SidebarHeader
+        clearSelection={clearSelection}
+        setNewFolder={setNewFolder}
+      />
       {/* New folder input */}
       {newFolder && (
         <div className="mb-2">
@@ -75,7 +90,7 @@ export const Sidebar = () => {
             setSelectedFolder={setSelectedFolder}
             selectedFolder={selectedFolder}
             selectedNote={selectedNote}
-            selectNote={selectNote}
+            selectNote={setSelectedNote}
           />
         ))}
       </div>
@@ -90,7 +105,7 @@ export const Sidebar = () => {
             <DraggableNote
               key={note.id}
               note={note}
-              selectNote={selectNote}
+              selectNote={setSelectedNote}
               selectedNote={selectedNote}
             />
           ))}
@@ -100,7 +115,13 @@ export const Sidebar = () => {
   );
 };
 
-export const SidebarHeader = () => {
+export const SidebarHeader = ({
+  clearSelection,
+  setNewFolder,
+}: {
+  clearSelection: () => void;
+  setNewFolder: React.Dispatch<SetStateAction<boolean>>;
+}) => {
   return (
     <div className="flex items-center justify-between mb-2">
       <h2 className="text-lg font-semibold text-ctp-text">FastNotes</h2>
@@ -120,6 +141,68 @@ export const SidebarHeader = () => {
           <i className="fadr fa-file-circle-plus text-base text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
         </button>
       </div>
+    </div>
+  );
+};
+
+interface RenderFolderProps {
+  folder: FolderTreeNode;
+  depth?: number;
+  setSelectedFolder: (id: number | null) => void;
+  selectedFolder: number | null;
+  selectedNote: NoteRead | null;
+  selectNote: (note: NoteRead) => void;
+}
+
+const RenderFolder = ({
+  folder,
+  depth = 0,
+  setSelectedFolder,
+  selectedFolder,
+  selectedNote,
+  selectNote,
+}: RenderFolderProps) => {
+  const [collapse, setCollapse] = useState(false);
+
+  return (
+    <div
+      key={folder.id}
+      className="flex flex-col"
+      style={{ marginLeft: depth > 0 ? "1.5rem" : "0" }}
+    >
+      <DroppableFolder
+        folder={folder}
+        setSelectedFolder={setSelectedFolder}
+        selectedFolder={selectedFolder}
+        selectedNote={selectedNote}
+        setCollapse={setCollapse}
+        collapse={collapse}
+      />
+      {collapse && (
+        <>
+          <div className="flex flex-col gap-0.5 ml-6">
+            {folder.notes.map((note) => (
+              <DraggableNote
+                key={note.id}
+                note={note}
+                selectNote={selectNote}
+                selectedNote={selectedNote}
+              />
+            ))}
+          </div>
+          {folder.children.map((child) => (
+            <RenderFolder
+              key={child.id}
+              folder={child}
+              depth={depth + 1}
+              setSelectedFolder={setSelectedFolder}
+              selectedFolder={selectedFolder}
+              selectedNote={selectedNote}
+              selectNote={selectNote}
+            />
+          ))}
+        </>
+      )}
     </div>
   );
 };

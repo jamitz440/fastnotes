@@ -1,21 +1,30 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { folderApi, FolderCreate, FolderTreeResponse } from "../api/folders";
+import {
+  folderApi,
+  FolderCreate,
+  FolderTreeResponse,
+  NoteRead,
+} from "../api/folders";
 import { Note, NoteCreate, notesApi } from "../api/notes";
 
 interface NoteState {
   folderTree: FolderTreeResponse | null;
   selectedFolder: number | null;
+  selectedNote: NoteRead | null;
 
   loadFolderTree: () => Promise<void>;
   createNote: (note: NoteCreate) => Promise<void>;
-  createFolder: (folder: FolderCreate) => Promise<void>;
   updateNote: (id: number, note: Partial<Note>) => Promise<void>;
+  createFolder: (folder: FolderCreate) => Promise<void>;
+  setSelectedFolder: (id: number | null) => void;
+  setSelectedNote: (id: NoteRead | null) => void;
 }
 
 export const useNoteStore = create<NoteState>()((set, get) => ({
   folderTree: null,
   selectedFolder: null,
+  selectedNote: null,
 
   loadFolderTree: async () => {
     const data = await folderApi.tree();
@@ -35,5 +44,13 @@ export const useNoteStore = create<NoteState>()((set, get) => ({
   updateNote: async (id: number, note: Partial<Note>) => {
     await notesApi.update(id, note);
     await get().loadFolderTree();
+  },
+
+  setSelectedFolder: (id: number | null) => {
+    set({ selectedFolder: id });
+  },
+
+  setSelectedNote: (id: NoteRead | null) => {
+    set({ selectedNote: id });
   },
 }));

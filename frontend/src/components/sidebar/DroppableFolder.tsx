@@ -11,7 +11,7 @@ export const DroppableFolder = ({
   collapse,
 }: {
   folder: Partial<Folder>;
-  setSelectedFolder: React.Dispatch<React.SetStateAction<number | null>>;
+  setSelectedFolder: (id: number | null) => void;
   selectedFolder: number | null;
   selectedNote: NoteRead | null;
   setCollapse: React.Dispatch<React.SetStateAction<boolean>>;

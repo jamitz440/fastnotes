@@ -43,6 +43,7 @@ import CheckIcon from "../assets/fontawesome/svg/circle-check.svg?react";
 import SpinnerIcon from "../assets/fontawesome/svg/rotate.svg?react";
 import { useNoteStore } from "../stores/notesStore";
 import { create } from "zustand";
+import { Sidebar } from "../components/sidebar/SideBar";
 
 const simpleSandpackConfig: SandpackConfig = {
   defaultPreset: "react",
@@ -61,17 +62,26 @@ const simpleSandpackConfig: SandpackConfig = {
 
 function Home() {
   // const [folderTree, setFolderTree] = useState<FolderTreeResponse | null>(null);
-  const [selectedNote, setSelectedNote] = useState<NoteRead | null>(null);
+  // const [selectedNote, setSelectedNote] = useState<NoteRead | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [newFolder, setNewFolder] = useState(false);
   const [newFolderText, setNewFolderText] = useState("");
-  const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
+  // const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [encrypted, setEncrypted] = useState(false);
   const [updating, setUpdating] = useState(false);
 
-  const { folderTree, loadFolderTree, createNote, createFolder, updateNote } =
-    useNoteStore();
+  const {
+    setSelectedFolder,
+    selectedFolder,
+    folderTree,
+    loadFolderTree,
+    createNote,
+    createFolder,
+    updateNote,
+    setSelectedNote,
+    selectedNote,
+  } = useNoteStore();
 
   const pointer = useSensor(PointerSensor, {
     activationConstraint: {
@@ -103,15 +113,9 @@ function Home() {
     return () => clearTimeout(timer);
   }, [content, title]);
 
-
   const handleCreate = async () => {
     if (!title.trim()) return;
     await createNote({ title, content, folder_id: null });
-  };
-
-  const handleCreateFolder = async () => {
-    if (!newFolderText.trim()) return;
-    await createFolder({ name: newFolderText, parent_id: null });
   };
 
   const handleUpdate = async () => {
@@ -127,15 +131,6 @@ function Home() {
     await notesApi.delete(id);
     loadFolderTree();
     clearSelection();
-  };
-
-  const selectNote = (note: NoteRead) => {
-    setSelectedNote(note);
-    setTitle(note.title);
-
-    let cleanContent = note.content.replace(/\\([_\-\[\]\(\)])/g, "$1");
-    cleanContent = cleanContent.replace(/^```\s*$/gm, "");
-    setContent(cleanContent);
   };
 
   const clearSelection = () => {
@@ -159,88 +154,8 @@ function Home() {
     <DndContext onDragEnd={handleDragEnd} autoScroll={false} sensors={sensors}>
       <div className="flex bg-ctp-base h-screen text-ctp-text overflow-hidden">
         {/* Sidebar */}
-        <div
-          className="bg-ctp-mantle border-r border-ctp-surface2 w-[300px] p-4 overflow-y-auto sm:block hidden flex-shrink-0 flex flex-col gap-3"
-          onDragOver={(e) => e.preventDefault()}
-          onTouchMove={(e) => e.preventDefault()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold text-ctp-text">FastNotes</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setNewFolder(true)}
-                className="hover:bg-ctp-mauve group transition-colors rounded-md p-1.5"
-                title="New folder"
-              >
-                <i className="fadr fa-folder-plus text-base text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
-              </button>
-              <button
-                onClick={clearSelection}
-                className="hover:bg-ctp-mauve group transition-colors rounded-md p-1.5"
-                title="New note"
-              >
-                <i className="fadr fa-file-circle-plus text-base text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
-              </button>
-            </div>
-          </div>
 
-          {/* New folder input */}
-          {newFolder && (
-            <div className="mb-2">
-              <input
-                onBlur={() => setNewFolder(false)}
-                onChange={(e) => setNewFolderText(e.target.value)}
-                value={newFolderText}
-                type="text"
-                placeholder="Folder name..."
-                className="border border-ctp-mauve rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-ctp-mauve bg-ctp-base text-ctp-text placeholder:text-ctp-overlay0"
-                ref={newFolderRef}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleCreateFolder();
-                  }
-                  if (e.key === "Escape") {
-                    setNewFolder(false);
-                  }
-                }}
-              />
-            </div>
-          )}
-
-          {/* Folder tree */}
-          <div className="flex flex-col gap-1">
-            {folderTree?.folders.map((folder) => (
-              <RenderFolder
-                key={folder.id}
-                folder={folder}
-                depth={0}
-                setSelectedFolder={setSelectedFolder}
-                selectedFolder={selectedFolder}
-                selectedNote={selectedNote}
-                selectNote={selectNote}
-              />
-            ))}
-          </div>
-
-          {/* Orphaned notes */}
-          {folderTree?.orphaned_notes &&
-            folderTree.orphaned_notes.length > 0 && (
-              <div className="mt-4 flex flex-col gap-1">
-                {/*<div className="text-ctp-subtext0 text-sm font-medium mb-1 px-2">
-                  Unsorted
-                </div>*/}
-                {folderTree.orphaned_notes.map((note) => (
-                  <DraggableNote
-                    key={note.id}
-                    note={note}
-                    selectNote={selectNote}
-                    selectedNote={selectedNote}
-                  />
-                ))}
-              </div>
-            )}
-        </div>
+        <Sidebar clearSelection={clearSelection} />
 
         {/* Main editor area */}
         <div className="flex flex-col w-full h-screen overflow-hidden">
@@ -253,7 +168,7 @@ function Home() {
             <input
               type="text"
               placeholder="Untitled note..."
-              value={title}
+              value={selectedNote?.title || ""}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-0 py-3 mb-4 text-3xl font-semibold bg-transparent border-b border-ctp-surface2 focus:outline-none focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
             />
@@ -261,7 +176,7 @@ function Home() {
             {/* Editor */}
             <div className="flex-1">
               <MDXEditor
-                markdown={content}
+                markdown={selectedNote?.content || ""}
                 key={selectedNote?.id || "new"}
                 onChange={setContent}
                 className="prose prose-invert max-w-none text-ctp-text h-full dark-editor dark-mode"
@@ -380,7 +295,7 @@ export default Home;
 interface RenderFolderProps {
   folder: FolderTreeNode;
   depth?: number;
-  setSelectedFolder: React.Dispatch<SetStateAction<number | null>>;
+  setSelectedFolder: (id: number | null) => void;
   selectedFolder: number | null;
   selectedNote: NoteRead | null;
   selectNote: (note: NoteRead) => void;
