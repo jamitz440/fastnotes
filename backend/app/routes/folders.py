@@ -9,6 +9,7 @@ from app.models import (
     FolderCreate,
     FolderTreeNode,
     FolderTreeResponse,
+    FolderUpdate,
     Note,
     NoteRead,
 )
@@ -74,3 +75,52 @@ def delete_folder(folder_id: int, session: Session = Depends(get_session)):
     session.delete(folder)
     session.commit()
     return {"message": "Folder deleted"}
+
+
+@router.patch("/{folder_id}")
+def update_folder(
+    folder_id: int, folder_update: FolderUpdate, session: Session = Depends(get_session)
+):
+    """Update a folder"""
+    print(f"=== UPDATE FOLDER CALLED ===")
+    print(f"Folder ID: {folder_id}")
+    print(f"Update data received: {folder_update}")
+
+    folder = session.get(Folder, folder_id)
+    if not folder:
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    print(
+        f"Found folder: id={folder.id}, name={folder.name}, parent_id={folder.parent_id}"
+    )
+
+    # Update folder attributes from the request body
+    update_data = folder_update.model_dump(exclude_unset=True)
+    print(f"Update data dict (exclude_unset): {update_data}")
+    print(f"Update data keys: {list(update_data.keys())}")
+
+    for key, value in update_data.items():
+        print(f"Setting {key} = {value}")
+        setattr(folder, key, value)
+
+    print(
+        f"After setattr: id={folder.id}, name={folder.name}, parent_id={folder.parent_id}"
+    )
+
+    session.add(folder)
+    session.commit()
+    print(f"Committed changes to database")
+
+    session.refresh(folder)
+    print(
+        f"After refresh: id={folder.id}, name={folder.name}, parent_id={folder.parent_id}"
+    )
+
+    # Verify the change persisted
+    verification = session.get(Folder, folder_id)
+    print(
+        f"Verification query: id={verification.id}, name={verification.name}, parent_id={verification.parent_id}"
+    )
+    print(f"=== UPDATE COMPLETE ===")
+
+    return folder

@@ -36,6 +36,11 @@ export interface FolderCreate {
   parent_id: number | null;
 }
 
+export interface FolderUpdate {
+  name?: string;
+  parent_id?: number | null;
+}
+
 const getFolderTree = async () => {
   const { data } = await axios.get<FolderTreeResponse>(
     `${API_URL}/folders/tree`,
@@ -46,10 +51,24 @@ const getFolderTree = async () => {
   return decryptedFolderTree;
 };
 
+const updateFolder = async (id: number, folder: FolderUpdate) => {
+  console.log(`Updating folder ${id} with:`, folder);
+  try {
+    const response = await axios.patch(`${API_URL}/folders/${id}`, folder);
+    console.log(`Folder ${id} update response:`, response.data);
+    return response;
+  } catch (error) {
+    console.error(`Failed to update folder ${id}:`, error);
+    throw error;
+  }
+};
+
 export const folderApi = {
   tree: () => getFolderTree(),
   list: () => axios.get<Folder[]>(`${API_URL}/folders`),
   create: (folder: FolderCreate) =>
     axios.post<Folder>(`${API_URL}/folders`, folder),
   delete: (id: number) => axios.delete(`${API_URL}/folders/${id}`),
+  update: (id: number, updateData: FolderUpdate) =>
+    updateFolder(id, updateData),
 };

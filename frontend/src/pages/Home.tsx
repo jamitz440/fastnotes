@@ -39,7 +39,9 @@ import {
 import "@mdxeditor/editor/style.css";
 import { DroppableFolder } from "../components/sidebar/DroppableFolder";
 import { DraggableNote } from "../components/sidebar/DraggableNote";
+// @ts-ignore
 import CheckIcon from "../assets/fontawesome/svg/circle-check.svg?react";
+// @ts-ignore
 import SpinnerIcon from "../assets/fontawesome/svg/rotate.svg?react";
 import { useNoteStore } from "../stores/notesStore";
 import { create } from "zustand";
@@ -83,12 +85,7 @@ function Home() {
     selectedNote,
   } = useNoteStore();
 
-  const pointer = useSensor(PointerSensor, {
-    activationConstraint: {
-      distance: 30,
-    },
-  });
-  const sensors = useSensors(pointer);
+
 
   const newFolderRef = useRef<HTMLInputElement>(null);
 
@@ -139,19 +136,10 @@ function Home() {
     setContent("");
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) return;
 
-    await notesApi.update(active.id as number, {
-      folder_id: over.id as number,
-    });
-
-    loadFolderTree();
-  };
 
   return (
-    <DndContext onDragEnd={handleDragEnd} autoScroll={false} sensors={sensors}>
+
       <div className="flex bg-ctp-base h-screen text-ctp-text overflow-hidden">
         {/* Sidebar */}
 
@@ -188,7 +176,6 @@ function Home() {
                       <>
                         <UndoRedo />
                         <BoldItalicUnderlineToggles />
-                        <DiffSourceToggleWrapper />
                       </>
                     ),
                   }),
@@ -251,19 +238,6 @@ function Home() {
                 Create Note
               </button>
             )}
-
-            {/* Encryption toggle */}
-            {/*<label className="flex items-center gap-2 ml-auto cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={encrypted}
-                onChange={() => setEncrypted(!encrypted)}
-                className="w-4 h-4 rounded border-ctp-surface2 text-ctp-mauve focus:ring-ctp-mauve focus:ring-offset-ctp-base cursor-pointer"
-              />
-              <span className="text-sm text-ctp-subtext0 group-hover:text-ctp-text transition-colors">
-                Encrypt
-              </span>
-            </label>*/}
           </div>
         </div>
 
@@ -286,7 +260,6 @@ function Home() {
           )}
         </div>
       </div>
-    </DndContext>
   );
 }
 

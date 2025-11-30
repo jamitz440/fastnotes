@@ -67,3 +67,8 @@ class NoteUpdate(SQLModel):
 class FolderCreate(SQLModel):
     name: str
     parent_id: Optional[int] = None
+
+
+class FolderUpdate(SQLModel):
+    name: Optional[str] = None
+    parent_id: Optional[int] = None
