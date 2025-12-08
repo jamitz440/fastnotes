@@ -1,8 +1,11 @@
 import axios from "axios";
 import { NoteRead } from "./folders";
-import { deriveKey, encryptString, decryptString } from "./encryption";
-
-const API_URL = import.meta.env.PROD ? "/api" : "http://localhost:8000/api";
+import { encryptString, decryptString } from "./encryption";
+import { useAuthStore } from "../stores/authStore";
+axios.defaults.withCredentials = true;
+const API_URL = (import.meta as any).env.PROD
+  ? "/api"
+  : "http://localhost:8000/api";
 
 export interface Note {
   id: number;
@@ -20,9 +23,11 @@ export interface NoteCreate {
 }
 
 const createNote = async (note: NoteCreate) => {
-  var key = await deriveKey("Test");
-  var noteContent = await encryptString(note.content, key);
-  var noteTitle = await encryptString(note.title, key);
+  const encryptionKey = useAuthStore.getState().encryptionKey;
+  if (!encryptionKey) throw new Error("Not authenticated");
+
+  var noteContent = await encryptString(note.content, encryptionKey);
+  var noteTitle = await encryptString(note.title, encryptionKey);
 
   var encryptedNote = {
     title: noteTitle,
@@ -31,19 +36,20 @@ const createNote = async (note: NoteCreate) => {
   };
 
   console.log(encryptedNote);
-  return axios.post(`${API_URL}/notes`, encryptedNote);
+  return axios.post(`${API_URL}/notes/`, encryptedNote);
 };
-
 const fetchNotes = async () => {
-  const { data } = await axios.get(`${API_URL}/notes`);
+  const encryptionKey = useAuthStore.getState().encryptionKey;
+  if (!encryptionKey) throw new Error("Not authenticated");
+
+  const { data } = await axios.get(`${API_URL}/notes/`);
 
   console.log(data);
-  var key = await deriveKey("Test");
   const decryptedNotes = await Promise.all(
     data.map(async (note: Note) => ({
       ...note,
-      title: await decryptString(note.title, key),
-      content: await decryptString(note.content, key),
+      title: await decryptString(note.title, encryptionKey),
+      content: await decryptString(note.content, encryptionKey),
     })),
   );
 
@@ -51,13 +57,15 @@ const fetchNotes = async () => {
 };
 
 const updateNote = async (id: number, note: Partial<Note>) => {
-  var key = await deriveKey("Test");
+  const encryptionKey = useAuthStore.getState().encryptionKey;
+  if (!encryptionKey) throw new Error("Not authenticated");
+
   var encryptedNote: Partial<Note> = {};
   if (note.content) {
-    encryptedNote.content = await encryptString(note.content, key);
+    encryptedNote.content = await encryptString(note.content, encryptionKey);
   }
   if (note.title) {
-    encryptedNote.title = await encryptString(note.title, key);
+    encryptedNote.title = await encryptString(note.title, encryptionKey);
   }
   if (note.folder_id) {
     encryptedNote.folder_id = note.folder_id;

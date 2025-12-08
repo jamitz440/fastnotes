@@ -1,0 +1,172 @@
+@reference "../main.css";
+
+/* Custom Scrollbar */
+*::-webkit-scrollbar {
+    @apply w-2;
+}
+
+*::-webkit-scrollbar-track {
+    @apply bg-ctp-mantle rounded-full;
+}
+
+*::-webkit-scrollbar-thumb {
+    @apply bg-ctp-surface2 rounded-full;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    @apply bg-ctp-overlay0;
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ctp-surface2) var(--color-ctp-mantle);
+}
+
+.tiptap-editor {
+    @apply flex flex-col h-full bg-ctp-base;
+}
+
+.ProseMirror {
+    @apply text-ctp-text;
+}
+
+.editor-toolbar {
+    @apply flex gap-2 px-4 bg-ctp-mantle border-b border-ctp-surface2 flex-wrap items-center;
+}
+
+.toolbar-group {
+    @apply flex gap-1;
+}
+
+.toolbar-divider {
+    @apply w-px h-6 bg-ctp-surface2;
+}
+
+.editor-toolbar button {
+    @apply p-2 bg-transparent border-none rounded-sm text-ctp-text cursor-pointer transition-all duration-150 text-sm font-semibold min-w-8 flex items-center justify-center;
+}
+
+.editor-toolbar button:hover:not(:disabled) {
+    @apply bg-ctp-surface0;
+}
+
+.editor-toolbar button.active {
+    @apply bg-ctp-mauve text-ctp-base;
+}
+
+.editor-toolbar button:disabled {
+    @apply opacity-40 cursor-not-allowed;
+}
+
+.ProseMirror:focus {
+    @apply outline-none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    @apply float-left text-ctp-overlay0 pointer-events-none h-0;
+}
+.ProseMirror ul {
+    @apply mb-0!;
+}
+.ProseMirror h1 {
+    @apply text-3xl font-bold text-ctp-mauve mt-8 mb-4;
+}
+
+.ProseMirror h2 {
+    @apply text-2xl font-semibold text-ctp-blue mt-6 mb-3;
+}
+
+.ProseMirror h3 {
+    @apply text-xl font-semibold text-ctp-teal mt-5 mb-2;
+}
+
+.ProseMirror code {
+    @apply bg-ctp-surface0 text-ctp-peach px-1.5 py-0.5 rounded text-sm;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+.ProseMirror .code-block {
+    @apply bg-ctp-surface0 border border-ctp-surface2 rounded-sm p-4 my-4 overflow-x-auto;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+.ProseMirror .code-block code {
+    @apply bg-transparent p-0 text-ctp-text;
+}
+
+.ProseMirror blockquote {
+    @apply border-l-4 border-ctp-mauve pl-4 ml-0 text-ctp-subtext0 italic;
+}
+
+.ProseMirror hr {
+    @apply border-none border-t-2 border-ctp-surface2 my-8;
+}
+
+.ProseMirror a {
+    @apply text-ctp-blue underline;
+}
+
+.ProseMirror a:hover {
+    @apply text-ctp-sapphire;
+}
+
+.ProseMirror strong {
+    @apply text-ctp-peach font-semibold;
+}
+
+.ProseMirror em {
+    @apply text-ctp-yellow;
+}
+
+/* Task List (Checkboxes) */
+.ProseMirror ul[data-type="taskList"] {
+    @apply list-none p-0;
+}
+
+.ProseMirror ul[data-type="taskList"] > li {
+    @apply flex flex-row items-baseline m-0 p-0;
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label {
+    @apply flex-none mr-2 select-none flex items-center h-6;
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label input[type="checkbox"] {
+    @apply cursor-pointer m-0 accent-ctp-mauve;
+}
+
+.ProseMirror ul[data-type="taskList"] > li > div {
+    @apply flex-1;
+}
+
+.ProseMirror ul[data-type="taskList"] > li > div p {
+    @apply m-0 p-0;
+}
+
+.ProseMirror li[data-checked="true"] > div > p {
+    @apply line-through text-ctp-overlay0;
+    text-decoration-style: wavy;
+}
+
+.ProseMirror u {
+    @apply decoration-ctp-mauve;
+    text-decoration-style: wavy;
+}
+
+.ProseMirror li::marker {
+    @apply text-ctp-mauve;
+}
+
+/* tiptap.css */
+.ProseMirror ul,
+.ProseMirror ol {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.ProseMirror li > p {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}

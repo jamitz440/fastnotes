@@ -2,7 +2,7 @@ from fastapi import FastAPI  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type:ignore
 
 from app.database import create_db_and_tables
-from app.routes import folders, notes
+from app.routes import auth, folders, notes
 
 app = FastAPI(title="Notes API")
 
@@ -23,6 +23,7 @@ def on_startup():
 
 app.include_router(notes.router, prefix="/api")
 app.include_router(folders.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
 
 
 @app.get("/")

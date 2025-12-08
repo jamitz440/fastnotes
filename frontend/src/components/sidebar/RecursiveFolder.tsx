@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { FolderTreeNode } from "../../api/folders";
+import { motion, AnimatePresence } from "framer-motion";
+import { FolderTreeNode, NoteRead } from "../../api/folders";
 import { DraggableNote } from "./DraggableNote";
 import { DroppableFolder } from "./DroppableFolder";
 
@@ -15,28 +16,42 @@ export const RecursiveFolder = ({
   const [collapse, setCollapse] = useState(false);
 
   return (
-    <div
-      key={folder.id}
-      className="flex flex-col"
-      style={{ marginLeft: depth > 0 ? "1.5rem" : "0" }}
-    >
+    <div key={folder.id} className="flex flex-col relative">
       <DroppableFolder
         folder={folder}
         setCollapse={setCollapse}
         collapse={collapse}
       />
-      {collapse && (
-        <>
-          <div className="flex flex-col gap-0.5 ml-6">
-            {folder.notes.map((note) => (
-              <DraggableNote key={note.id} note={note} />
-            ))}
-          </div>
-          {folder.children.map((child) => (
-            <RecursiveFolder key={child.id} folder={child} depth={depth + 1} />
-          ))}
-        </>
-      )}
+      <AnimatePresence>
+        {collapse && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden flex flex-col"
+          >
+            {/* The line container */}
+            <div className="ml-2 pl-3 border-l border-ctp-surface2">
+              {/* Notes */}
+              <div className="flex flex-col gap-0.5">
+                {folder.notes.map((note) => (
+                  <DraggableNote key={note.id} note={note} />
+                ))}
+              </div>
+
+              {/* Child Folders */}
+              {folder.children.map((child) => (
+                <RecursiveFolder
+                  key={child.id}
+                  folder={child}
+                  depth={depth + 1}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

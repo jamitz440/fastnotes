@@ -1,7 +1,12 @@
 import axios from "axios";
-import { decryptFolderTree, deriveKey } from "./encryption";
+import { decryptFolderTree } from "./encryption";
+import { useAuthStore } from "../stores/authStore";
 
-const API_URL = import.meta.env.PROD ? "/api" : "http://localhost:8000/api";
+axios.defaults.withCredentials = true;
+
+const API_URL = (import.meta as any).env.PROD
+  ? "/api"
+  : "http://localhost:8000/api";
 
 export interface Folder {
   id: number;
@@ -42,11 +47,14 @@ export interface FolderUpdate {
 }
 
 const getFolderTree = async () => {
+  const encryptionKey = useAuthStore.getState().encryptionKey;
+  if (!encryptionKey) throw new Error("Not authenticated");
+
   const { data } = await axios.get<FolderTreeResponse>(
     `${API_URL}/folders/tree`,
   );
-  var key = await deriveKey("Test");
-  const decryptedFolderTree = await decryptFolderTree(data, key);
+
+  const decryptedFolderTree = await decryptFolderTree(data, encryptionKey);
 
   return decryptedFolderTree;
 };
@@ -67,7 +75,7 @@ export const folderApi = {
   tree: () => getFolderTree(),
   list: () => axios.get<Folder[]>(`${API_URL}/folders`),
   create: (folder: FolderCreate) =>
-    axios.post<Folder>(`${API_URL}/folders`, folder),
+    axios.post<Folder>(`${API_URL}/folders/`, folder),
   delete: (id: number) => axios.delete(`${API_URL}/folders/${id}`),
   update: (id: number, updateData: FolderUpdate) =>
     updateFolder(id, updateData),

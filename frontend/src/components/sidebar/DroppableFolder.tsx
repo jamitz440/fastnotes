@@ -1,7 +1,11 @@
 import React from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Folder, NoteRead } from "../../api/folders";
-import { useNoteStore } from "../../stores/notesStore";
+import { Folder } from "../../api/folders";
+import { useContextMenu } from "../../contexts/ContextMenuContext";
+// @ts-ignore
+import CaretRightIcon from "../../assets/fontawesome/svg/caret-right.svg?react";
+// @ts-ignore
+import FolderIcon from "../../assets/fontawesome/svg/folder.svg?react";
 
 export const DroppableFolder = ({
   folder,
@@ -12,7 +16,7 @@ export const DroppableFolder = ({
   setCollapse: React.Dispatch<React.SetStateAction<boolean>>;
   collapse: boolean;
 }) => {
-  const { setSelectedFolder, selectedFolder, selectedNote } = useNoteStore();
+  const { openContextMenu } = useContextMenu();
 
   const { isOver, setNodeRef: setDroppableRef } = useDroppable({
     id: folder.id!,
@@ -37,7 +41,7 @@ export const DroppableFolder = ({
 
   const style = {
     color: isOver ? "green" : undefined,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0 : 1,
     transform: transform
       ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
       : undefined,
@@ -46,27 +50,24 @@ export const DroppableFolder = ({
   return (
     <div ref={setNodeRef} style={style}>
       <div
-        onClick={() => setSelectedFolder(folder.id as number)}
-        className={`font-semibold mb-1 flex items-center gap-1 px-2 py-1 rounded cursor-pointer ${
-          selectedFolder === folder.id &&
-          (selectedNote?.folder_id == folder.id || selectedNote == null)
-            ? "bg-ctp-surface1"
-            : "hover:bg-ctp-surface0"
-        }`}
+        onClick={(e) => {
+          e.stopPropagation();
+          setCollapse(!collapse);
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openContextMenu(e.clientX, e.clientY, "folder", folder);
+        }}
+        className={`font-semibold mb-1 flex items-center gap-1 pr-1 py-1 rounded cursor-pointer select-none`}
         {...listeners}
         {...attributes}
       >
-        <i className="fadr fa-folder text-sm"></i>
+        <CaretRightIcon
+          className={`w-4 h-4 mr-1 transition-all duration-200 ease-in-out ${collapse ? "rotate-90" : ""} fill-ctp-mauve`}
+        />
+        <FolderIcon className="w-4 h-4 fill-ctp-mauve mr-1" />
         {folder.name}
-        <div
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent dragging when clicking the collapse button
-            setCollapse(!collapse);
-          }}
-          className="ml-auto"
-        >
-          x
-        </div>
       </div>
     </div>
   );

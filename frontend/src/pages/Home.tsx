@@ -1,82 +1,47 @@
-import {
-  BoldItalicUnderlineToggles,
-  codeBlockPlugin,
-  codeMirrorPlugin,
-  diffSourcePlugin,
-  headingsPlugin,
-  imagePlugin,
-  linkPlugin,
-  listsPlugin,
-  markdownShortcutPlugin,
-  MDXEditor,
-  quotePlugin,
-  SandpackConfig,
-  sandpackPlugin,
-  tablePlugin,
-  thematicBreakPlugin,
-  toolbarPlugin,
-  UndoRedo,
-  DiffSourceToggleWrapper,
-} from "@mdxeditor/editor";
-import { SetStateAction, useEffect, useRef, useState } from "react";
-import {
-  folderApi,
-  FolderCreate,
-  FolderTreeNode,
-  FolderTreeResponse,
-  NoteRead,
-} from "../api/folders";
-import { NoteCreate, notesApi } from "../api/notes";
+import { useEffect, useRef, useState } from "react";
+import { notesApi } from "../api/notes";
 import "../main.css";
-import {
-  DndContext,
-  DragEndEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-
+import { motion } from "framer-motion";
 import "@mdxeditor/editor/style.css";
-import { DroppableFolder } from "../components/sidebar/DroppableFolder";
-import { DraggableNote } from "../components/sidebar/DraggableNote";
 // @ts-ignore
 import CheckIcon from "../assets/fontawesome/svg/circle-check.svg?react";
 // @ts-ignore
 import SpinnerIcon from "../assets/fontawesome/svg/rotate.svg?react";
+// @ts-ignore
+import WarningIcon from "../assets/fontawesome/svg/circle-exclamation.svg?react";
 import { useNoteStore } from "../stores/notesStore";
-import { create } from "zustand";
 import { Sidebar } from "../components/sidebar/SideBar";
-import { Editor } from "../components/editor/Editor";
 import { useUIStore } from "../stores/uiStore";
+import { TiptapEditor } from "./TipTap";
+import { useAuthStore } from "../stores/authStore";
+import { Login } from "./Login";
 
 function Home() {
-  // const [folderTree, setFolderTree] = useState<FolderTreeResponse | null>(null);
-  // const [selectedNote, setSelectedNote] = useState<NoteRead | null>(null);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
   const [newFolder, setNewFolder] = useState(false);
-  const [newFolderText, setNewFolderText] = useState("");
-  // const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
-  const [encrypted, setEncrypted] = useState(false);
-  // const [updating, setUpdating] = useState(false);
+  const [lastSavedNote, setLastSavedNote] = useState<{
+    id: number;
+    title: string;
+    content: string;
+  } | null>(null);
 
   const {
-    setSelectedFolder,
-    selectedFolder,
-    folderTree,
     loadFolderTree,
-    createNote,
-    createFolder,
     updateNote,
     setSelectedNote,
+    setContent,
     selectedNote,
+    setTitle,
   } = useNoteStore();
 
-  const { updating } = useUIStore();
+  const { isAuthenticated, encryptionKey } = useAuthStore();
+
+  const { showModal, setShowModal } = useUIStore();
 
   const newFolderRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // if (!isAuthenticated) return;
+    console.log(encryptionKey);
     loadFolderTree();
   }, []);
 
@@ -86,73 +51,103 @@ function Home() {
     }
   }, [newFolder]);
 
-  const handleCreate = async () => {
-    if (!title.trim()) return;
-    await createNote({ title, content, folder_id: null });
-  };
-
-  const handleDelete = async (id: number) => {
-    await notesApi.delete(id);
-    loadFolderTree();
-    clearSelection();
-  };
-
   const clearSelection = () => {
     setSelectedNote(null);
-    setTitle("");
-    setContent("");
+  };
+
+  const { updating, setUpdating } = useUIStore();
+
+  useEffect(() => {
+    if (!selectedNote) return;
+    if (!encryptionKey) return; // Don't try to save without encryption key
+
+    // Check if content or title actually changed (not just selecting a different note)
+    const hasChanges =
+      lastSavedNote &&
+      lastSavedNote.id === selectedNote.id &&
+      (lastSavedNote.title !== selectedNote.title ||
+        lastSavedNote.content !== selectedNote.content);
+
+    // If it's a new note selection, just update lastSavedNote without saving
+    if (!lastSavedNote || lastSavedNote.id !== selectedNote.id) {
+      setLastSavedNote({
+        id: selectedNote.id,
+        title: selectedNote.title,
+        content: selectedNote.content,
+      });
+      return;
+    }
+
+    if (!hasChanges) return;
+
+    const timer = setTimeout(async () => {
+      setUpdating(true);
+      await handleUpdate();
+      setLastSavedNote({
+        id: selectedNote.id,
+        title: selectedNote.title,
+        content: selectedNote.content,
+      });
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [selectedNote, encryptionKey]);
+
+  const handleUpdate = async () => {
+    if (!selectedNote) return;
+    if (!encryptionKey) {
+      setUpdating(false);
+      return;
+    }
+
+    try {
+      await updateNote(selectedNote.id);
+      console.log(selectedNote.id);
+    } catch (error) {
+      console.error("Failed to update note:", error);
+    } finally {
+      setTimeout(() => {
+        setUpdating(false);
+      }, 1000);
+    }
   };
 
   return (
     <div className="flex bg-ctp-base h-screen text-ctp-text overflow-hidden">
       {/* Sidebar */}
+      {showModal && <Modal />}
 
       <Sidebar clearSelection={clearSelection} />
 
       {/* Main editor area */}
       <div className="flex flex-col w-full h-screen overflow-hidden">
-        {/* Top accent bar */}
-        <div className="w-full bg-ctp-crust h-1 shrink-0"></div>
-
-        <Editor />
-
-        {/* Action bar */}
-        <div className="flex items-center gap-3 px-8 py-4 border-t border-ctp-surface2 bg-ctp-mantle shrink-0">
-          {selectedNote ? (
-            <>
-              {/*<button
-                onClick={handleUpdate}
-                className="px-2 py-0.5 bg-ctp-blue text-ctp-base rounded-lg hover:bg-ctp-sapphire transition-colors font-medium shadow-sm"
-              >
-                Save
-              </button>*/}
-              <button
-                onClick={() => handleDelete(selectedNote.id)}
-                className="px-2 py-0.5 bg-ctp-red text-ctp-base rounded-lg hover:bg-ctp-maroon transition-colors font-medium shadow-sm"
-              >
-                Delete
-              </button>
-              <button
-                onClick={clearSelection}
-                className="px-2 py-0.5 bg-ctp-surface0 text-ctp-text rounded-lg hover:bg-ctp-surface1 transition-colors font-medium"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={handleCreate}
-              className="px-2 py-0.5 bg-ctp-green text-ctp-base rounded-lg hover:bg-ctp-teal transition-colors font-medium shadow-sm"
-            >
-              Create Note
-            </button>
-          )}
-        </div>
+        {/*<Editor />*/}
+        <input
+          type="text"
+          placeholder="Untitled note..."
+          value={selectedNote?.title || ""}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full px-4 py-3 text-3xl font-semibold bg-transparentfocus:outline-none focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
+        />
+        <TiptapEditor
+          key={selectedNote?.id}
+          content={selectedNote?.content || ""}
+          onChange={setContent}
+        />
       </div>
 
       {/* Status indicator */}
-      <div className="fixed bottom-4 right-4 bg-ctp-surface0 border border-ctp-surface2 rounded-lg px-2 py-0.5 flex items-center gap-2.5 shadow-lg backdrop-blur-sm">
-        {updating ? (
+      <div
+        className="fixed bottom-2 right-3 bg-ctp-surface0 border border-ctp-surface2 rounded-sm px-2 py-0.5 flex items-center gap-2.5 shadow-lg backdrop-blur-sm"
+        onClick={() => {
+          if (!encryptionKey) {
+            setShowModal(true);
+          }
+        }}
+      >
+        {!encryptionKey ? (
+          <WarningIcon className="h-4 w-4 my-1 [&_.fa-primary]:fill-ctp-yellow [&_.fa-secondary]:fill-ctp-orange" />
+        ) : updating ? (
           <>
             <SpinnerIcon className="animate-spin h-4 w-4 [&_.fa-primary]:fill-ctp-blue [&_.fa-secondary]:fill-ctp-sapphire" />
             <span className="text-sm text-ctp-subtext0 font-medium">
@@ -171,3 +166,22 @@ function Home() {
 }
 
 export default Home;
+
+const Modal = () => {
+  const { setShowModal } = useUIStore();
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      onClick={() => setShowModal(false)}
+      className="absolute h-screen w-screen flex items-center justify-center bg-ctp-crust/60 z-50"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-2/3 h-2/3 bg-ctp-base rounded-xl border-ctp-surface2 border p-5"
+      >
+        <Login />
+      </div>
+    </motion.div>
+  );
+};

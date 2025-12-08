@@ -1,22 +1,30 @@
 from datetime import datetime
 
-from app.database import get_session
-from app.models import Note, NoteCreate, NoteUpdate
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
+
+from app.auth import require_auth
+from app.database import get_session
+from app.models import Note, NoteCreate, NoteUpdate, User
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
 
 @router.get("/")
 def list_notes(session: Session = Depends(get_session)):
-    notes = session.exec(select(Note).order_by(Note.updated_at.desc())).all()
+    notes = session.exec(select(Note).order_by(Note.updated_at.desc())).all()  # pyright: ignore[reportAttributeAccessIssue]
     return notes
 
 
 @router.post("/", response_model=Note)
-def create_note(note: NoteCreate, session: Session = Depends(get_session)):
-    db_note = Note.model_validate(note)
+def create_note(
+    note: NoteCreate,
+    current_user: User = Depends(require_auth),
+    session: Session = Depends(get_session),
+):
+    note_data = note.model_dump()
+    note_data["user_id"] = current_user.id
+    db_note = Note.model_validate(note_data)
     session.add(db_note)
     session.commit()
     session.refresh(db_note)

@@ -1,39 +1,47 @@
 import React, { useState, useRef, useEffect, SetStateAction } from "react";
-import {
-  FolderCreate,
-  FolderTreeNode,
-  FolderTreeResponse,
-  NoteRead,
-  folderApi,
-} from "../../api/folders";
+// @ts-ignore
+import FolderPlusIcon from "../../assets/fontawesome/svg/folder-plus.svg?react";
+// @ts-ignore
+import FileCirclePlusIcon from "../../assets/fontawesome/svg/file-circle-plus.svg?react";
+// @ts-ignore
+import FolderIcon from "../../assets/fontawesome/svg/folder.svg?react";
 import { DraggableNote } from "./DraggableNote";
-import { DroppableFolder } from "./DroppableFolder";
 import { useNoteStore } from "../../stores/notesStore";
 import {
   DndContext,
   DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { notesApi } from "../../api/notes";
+
 import { RecursiveFolder } from "./RecursiveFolder";
+import { useAuthStore } from "../../stores/authStore";
+import { useUIStore } from "../../stores/uiStore";
+import { NoteRead } from "../../api/folders";
 
 export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
-  // const [folderTree, setFolderTree] = useState<FolderTreeResponse | null>(null);
   const [newFolder, setNewFolder] = useState(false);
   const [newFolderText, setNewFolderText] = useState("");
+  const [activeItem, setActiveItem] = useState<{
+    type: "note" | "folder";
+    data: any;
+  } | null>(null);
   const newFolderRef = useRef<HTMLInputElement>(null);
 
   const {
-    setSelectedFolder,
-    selectedFolder,
     folderTree,
     loadFolderTree,
-    selectedNote,
-    setSelectedNote,
+    moveNoteToFolder,
+    moveFolderToFolder,
+    createFolder,
   } = useNoteStore();
 
+  const { isAuthenticated } = useAuthStore();
+
+  const { setSideBarResize, sideBarResize } = useUIStore();
   useEffect(() => {
     if (newFolder && newFolderRef.current) {
       newFolderRef.current.focus();
@@ -41,18 +49,17 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
   }, [newFolder]);
 
   useEffect(() => {
+    // if (!isAuthenticated) return;
     loadFolderTree();
   }, []);
 
   const handleCreateFolder = async () => {
     if (!newFolderText.trim()) return;
-    const newFolderData: FolderCreate = {
+    await createFolder({
       name: newFolderText,
       parent_id: null,
-    };
-    await folderApi.create(newFolderData);
+    });
     setNewFolderText("");
-    loadFolderTree();
     setNewFolder(false);
   };
 
@@ -63,7 +70,17 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
   });
   const sensors = useSensors(pointer);
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    if (active.data.current?.type === "note") {
+      setActiveItem({ type: "note", data: active.data.current.note });
+    } else if (active.data.current?.type === "folder") {
+      setActiveItem({ type: "folder", data: active.data.current.folder });
+    }
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveItem(null);
     const { active, over } = event;
     if (!over) return;
 
@@ -77,9 +94,7 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
 
     if (active.data.current?.type === "note") {
       console.log("Updating note", active.id, "to folder", over.id);
-      await notesApi.update(active.id as number, {
-        folder_id: over.id as number,
-      });
+      await moveNoteToFolder(active.id as number, over.id as number);
     } else if (active.data.current?.type === "folder") {
       // Prevent dropping folder into itself
       if (active.data.current.folder.id === over.id) {
@@ -94,71 +109,131 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
         over.id,
       );
       try {
-        const response = await folderApi.update(active.data.current.folder.id, {
-          parent_id: over.id as number,
-        });
-        console.log("Folder update response:", response);
+        await moveFolderToFolder(
+          active.data.current.folder.id,
+          over.id as number,
+        );
       } catch (error) {
         console.error("Failed to update folder:", error);
         return;
       }
     }
-
-    loadFolderTree();
   };
 
+  const [isResizing, setIsResizing] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsResizing(true);
+    e.preventDefault();
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+
+      // Calculate new width based on mouse position from the left edge
+      const newWidth = e.clientX;
+
+      if (newWidth >= 200 && newWidth <= 500) {
+        setSideBarResize(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
+
   return (
-    <DndContext onDragEnd={handleDragEnd} autoScroll={false} sensors={sensors}>
-      <div
-        className="bg-ctp-mantle border-r border-ctp-surface2 w-[300px] p-4 overflow-y-auto sm:block hidden  flex-col gap-3"
-        onDragOver={(e) => e.preventDefault()}
-        onTouchMove={(e) => e.preventDefault()}
-      >
-        <SidebarHeader
-          clearSelection={clearSelection}
-          setNewFolder={setNewFolder}
-        />
-        {/* New folder input */}
-        {newFolder && (
-          <div className="mb-2">
-            <input
-              onBlur={() => setNewFolder(false)}
-              onChange={(e) => setNewFolderText(e.target.value)}
-              value={newFolderText}
-              type="text"
-              placeholder="Folder name..."
-              className="border border-ctp-mauve rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-ctp-mauve bg-ctp-base text-ctp-text placeholder:text-ctp-overlay0"
-              ref={newFolderRef}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleCreateFolder();
-                }
-                if (e.key === "Escape") {
-                  setNewFolder(false);
-                }
-              }}
-            />
-          </div>
-        )}
+    <DndContext
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      autoScroll={false}
+      sensors={sensors}
+    >
+      <div className="flex-row-reverse flex">
+        <div
+          className="h-screen bg-ctp-surface0 w-0.5 hover:cursor-ew-resize hover:bg-ctp-mauve transition-colors"
+          onMouseDown={handleMouseDown}
+        ></div>
+        <div
+          className="flex flex-col min-h-full"
+          style={{ width: `${sideBarResize}px` }}
+        >
+          <SidebarHeader
+            clearSelection={clearSelection}
+            setNewFolder={setNewFolder}
+          />
+          <div
+            className="bg-ctp-mantle min-h-full border-r border-ctp-surface2 w-full p-4 overflow-y-auto sm:block hidden flex-col gap-3"
+            onDragOver={(e) => e.preventDefault()}
+            onTouchMove={(e) => e.preventDefault()}
+          >
+            {/* New folder input */}
+            {newFolder && (
+              <div className="mb-2">
+                <input
+                  onBlur={() => setNewFolder(false)}
+                  onChange={(e) => setNewFolderText(e.target.value)}
+                  value={newFolderText}
+                  type="text"
+                  placeholder="Folder name..."
+                  className="standard-input"
+                  ref={newFolderRef}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleCreateFolder();
+                    }
+                    if (e.key === "Escape") {
+                      setNewFolder(false);
+                    }
+                  }}
+                />
+              </div>
+            )}
 
-        {/* Folder tree */}
-        <div className="flex flex-col gap-1">
-          {folderTree?.folders.map((folder) => (
-            <RecursiveFolder key={folder.id} folder={folder} depth={0} />
-          ))}
+            {/* Folder tree */}
+            <div className="flex flex-col gap-1">
+              {folderTree?.folders.map((folder) => (
+                <RecursiveFolder key={folder.id} folder={folder} depth={0} />
+              ))}
+            </div>
+
+            {/* Orphaned notes */}
+            {folderTree?.orphaned_notes &&
+              folderTree.orphaned_notes.length > 0 && (
+                <div className="mt-4 flex flex-col gap-1">
+                  {folderTree.orphaned_notes.map((note) => (
+                    <DraggableNote key={note.id} note={note} />
+                  ))}
+                </div>
+              )}
+          </div>
+
+          <DragOverlay>
+            {activeItem?.type === "note" && (
+              <div className="bg-ctp-surface0 rounded-md px-2 py-1 shadow-lg border border-ctp-mauve">
+                {activeItem.data.title}
+              </div>
+            )}
+            {activeItem?.type === "folder" && (
+              <div className="bg-ctp-surface0 rounded-md px-1 py-0.5 shadow-lg flex items-center gap-1 text-sm">
+                <FolderIcon className="w-3 h-3 fill-ctp-mauve mr-1" />
+                {activeItem.data.name}
+              </div>
+            )}
+          </DragOverlay>
         </div>
-
-        {/* Orphaned notes */}
-        {folderTree?.orphaned_notes && folderTree.orphaned_notes.length > 0 && (
-          <div className="mt-4 flex flex-col gap-1">
-            {/*<div className="text-ctp-subtext0 text-sm font-medium mb-1 px-2">
-            Unsorted
-          </div>*/}
-            {folderTree.orphaned_notes.map((note) => (
-              <DraggableNote key={note.id} note={note} />
-            ))}
-          </div>
-        )}
       </div>
     </DndContext>
   );
@@ -171,25 +246,30 @@ export const SidebarHeader = ({
   clearSelection: () => void;
   setNewFolder: React.Dispatch<SetStateAction<boolean>>;
 }) => {
+  const { createNote, selectedFolder } = useNoteStore();
+  const handleCreate = async () => {
+    await createNote({
+      title: "Untitled",
+      content: "",
+      folder_id: selectedFolder,
+    });
+  };
   return (
-    <div className="flex items-center justify-between mb-2">
-      <h2 className="text-lg font-semibold text-ctp-text">FastNotes</h2>
-      <div className="flex gap-2">
-        <button
-          onClick={() => setNewFolder(true)}
-          className="hover:bg-ctp-mauve group transition-colors rounded-md p-1.5"
-          title="New folder"
-        >
-          <i className="fadr fa-folder-plus text-base text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
-        </button>
-        <button
-          onClick={clearSelection}
-          className="hover:bg-ctp-mauve group transition-colors rounded-md p-1.5"
-          title="New note"
-        >
-          <i className="fadr fa-file-circle-plus text-base text-ctp-mauve group-hover:text-ctp-base transition-colors"></i>
-        </button>
-      </div>
+    <div className="flex items-center justify-center w-full gap-2 bg-ctp-mantle border-b border-ctp-surface0 p-1">
+      <button
+        onClick={() => setNewFolder(true)}
+        className="hover:bg-ctp-mauve group transition-colors rounded-sm p-2"
+        title="New folder"
+      >
+        <FolderPlusIcon className="w-4 h-4 group-hover:fill-ctp-base transition-colors fill-ctp-mauve" />
+      </button>
+      <button
+        onClick={handleCreate}
+        className="hover:bg-ctp-mauve group transition-colors rounded-sm p-2 fill-ctp-mauve hover:fill-ctp-base"
+        title="New note"
+      >
+        <FileCirclePlusIcon className="w-4 h-4 text-ctp-mauve group-hover:text-ctp-base transition-colors" />
+      </button>
     </div>
   );
 };
