@@ -5,11 +5,11 @@ import {
   FolderCreate,
   FolderTreeNode,
   FolderTreeResponse,
+  FolderUpdate,
   NoteRead,
 } from "../api/folders";
 import { Note, NoteCreate, notesApi } from "../api/notes";
 
-// Helper function to update a note within the folder tree
 const updateNoteInTree = (
   tree: FolderTreeResponse | null,
   updatedNote: NoteRead,
@@ -32,19 +32,41 @@ const updateNoteInTree = (
   };
 };
 
-interface NoteState {
-  folderTree: FolderTreeResponse | null;
-  selectedFolder: number | null;
-  selectedNote: NoteRead | null;
+const updateFolder = (
+  id: number,
+  folder: FolderTreeNode,
+  newFolder: FolderUpdate,
+) => {
+  if (folder.id === id) {
+    return { ...folder, ...newFolder };
+  }
+  if (folder.children) {
+    return {
+      ...folder,
+      children: folder.children.map((f) => updateFolder(id, f, newFolder)),
+    };
+  }
+  return folder;
+};
 
+interface NoteState {
+  loadFolderTree: () => Promise<void>;
+  folderTree: FolderTreeResponse | null;
+
+  selectedFolder: number | null;
+  setSelectedFolder: (id: number | null) => void;
+
+  selectedNote: NoteRead | null;
+  setSelectedNote: (id: NoteRead | null) => void;
   setContent: (content: string) => void;
   setTitle: (title: string) => void;
-  loadFolderTree: () => Promise<void>;
+
   createNote: (note: NoteCreate) => Promise<void>;
   updateNote: (id: number) => Promise<void>;
+
   createFolder: (folder: FolderCreate) => Promise<void>;
-  setSelectedFolder: (id: number | null) => void;
-  setSelectedNote: (id: NoteRead | null) => void;
+  updateFolder: (id: number, newFolder: FolderUpdate) => Promise<void>;
+
   moveNoteToFolder: (noteId: number, folderId: number) => Promise<void>;
   moveFolderToFolder: (folderId: number, newParentId: number) => Promise<void>;
 }
@@ -52,10 +74,24 @@ interface NoteState {
 export const useNoteStore = create<NoteState>()(
   persist(
     (set, get) => ({
+      loadFolderTree: async () => {
+        const data = await folderApi.tree();
+        console.log("getting tree");
+        set({ folderTree: data });
+      },
       folderTree: null,
+
       selectedFolder: null,
+
+      setSelectedFolder: (id: number | null) => {
+        set({ selectedFolder: id });
+      },
+
       selectedNote: null,
 
+      setSelectedNote: (id: NoteRead | null) => {
+        set({ selectedNote: id });
+      },
       setContent: (content) => {
         const currentNote = get().selectedNote;
         if (currentNote) {
@@ -66,7 +102,6 @@ export const useNoteStore = create<NoteState>()(
           });
         }
       },
-
       setTitle: (title) => {
         const currentNote = get().selectedNote;
         if (currentNote) {
@@ -76,12 +111,6 @@ export const useNoteStore = create<NoteState>()(
             folderTree: updateNoteInTree(get().folderTree, updatedNote),
           });
         }
-      },
-
-      loadFolderTree: async () => {
-        const data = await folderApi.tree();
-        console.log("getting tree");
-        set({ folderTree: data });
       },
 
       createNote: async (note: Partial<NoteRead>) => {
@@ -129,6 +158,11 @@ export const useNoteStore = create<NoteState>()(
         }
       },
 
+      updateNote: async (id: number) => {
+        const note = get().selectedNote as Partial<Note>;
+        await notesApi.update(id, note);
+      },
+
       createFolder: async (folder: FolderCreate) => {
         const response = await folderApi.create(folder);
         const newFolder = response.data;
@@ -173,19 +207,21 @@ export const useNoteStore = create<NoteState>()(
           });
         }
       },
+      updateFolder: async (id: number, newFolder: FolderUpdate) => {
+        const tree = get().folderTree as FolderTreeResponse;
 
-      updateNote: async (id: number) => {
-        const note = get().selectedNote as Partial<Note>;
-        await notesApi.update(id, note);
-        // await get().loadFolderTree();
-      },
+        const newFolders = tree.folders.map((folder) =>
+          updateFolder(id, folder, newFolder),
+        );
 
-      setSelectedFolder: (id: number | null) => {
-        set({ selectedFolder: id });
-      },
+        set({
+          folderTree: {
+            folders: newFolders,
+            orphaned_notes: tree.orphaned_notes,
+          },
+        });
 
-      setSelectedNote: (id: NoteRead | null) => {
-        set({ selectedNote: id });
+        await folderApi.update(id, newFolder);
       },
 
       moveNoteToFolder: async (noteId: number, folderId: number) => {
@@ -257,7 +293,6 @@ export const useNoteStore = create<NoteState>()(
 
         let folderToMove: FolderTreeNode | null = null;
 
-        // Find and remove folder from current location
         const findAndRemoveFolder = (
           folders: FolderTreeNode[],
         ): FolderTreeNode[] => {
@@ -275,7 +310,6 @@ export const useNoteStore = create<NoteState>()(
             }));
         };
 
-        // Add folder to new parent
         const addFolderToParent = (
           folders: FolderTreeNode[],
         ): FolderTreeNode[] => {
@@ -303,7 +337,6 @@ export const useNoteStore = create<NoteState>()(
           },
         });
 
-        // Update backend
         await folderApi.update(folderId, { parent_id: newParentId });
       },
     }),

@@ -16,7 +16,7 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
   folder,
   onClose,
 }) => {
-  const { loadFolderTree } = useNoteStore();
+  const { loadFolderTree, updateFolder } = useNoteStore();
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(folder.name);
 
@@ -35,12 +35,7 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
 
   const handleRename = async () => {
     if (newName.trim() && newName !== folder.name) {
-      try {
-        await folderApi.update(folder.id, { name: newName.trim() });
-        await loadFolderTree();
-      } catch (error) {
-        console.error("Failed to rename folder:", error);
-      }
+      await updateFolder(folder.id, { name: newName });
     }
     setIsRenaming(false);
     onClose();
