@@ -1,18 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FolderTreeNode, NoteRead } from "../../api/folders";
 import { DraggableNote } from "./DraggableNote";
 import { DroppableFolder } from "./DroppableFolder";
+import { FolderTreeNode } from "../../../../../api/folders";
 
-interface RecursiveFolderProps {
+interface FolderTreeProps {
   folder: FolderTreeNode;
   depth?: number;
 }
 
-export const RecursiveFolder = ({
-  folder,
-  depth = 0,
-}: RecursiveFolderProps) => {
+export const FolderTree = ({ folder, depth = 0 }: FolderTreeProps) => {
   const [collapse, setCollapse] = useState(false);
 
   return (
@@ -42,11 +39,7 @@ export const RecursiveFolder = ({
 
               {/* Child Folders */}
               {folder.children.map((child) => (
-                <RecursiveFolder
-                  key={child.id}
-                  folder={child}
-                  depth={depth + 1}
-                />
+                <FolderTree key={child.id} folder={child} depth={depth + 1} />
               ))}
             </div>
           </motion.div>

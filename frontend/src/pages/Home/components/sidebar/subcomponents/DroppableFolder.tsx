@@ -1,11 +1,11 @@
 import React from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Folder } from "../../api/folders";
-import { useContextMenu } from "../../contexts/ContextMenuContext";
 // @ts-ignore
-import CaretRightIcon from "../../assets/fontawesome/svg/caret-right.svg?react";
+import CaretRightIcon from "@/assets/fontawesome/svg/caret-right.svg?react";
 // @ts-ignore
-import FolderIcon from "../../assets/fontawesome/svg/folder.svg?react";
+import FolderIcon from "@/assets/fontawesome/svg/folder.svg?react";
+import { Folder } from "@/api/folders";
+import { useContextMenu } from "@/contexts/ContextMenuContext";
 
 export const DroppableFolder = ({
   folder,
@@ -59,15 +59,15 @@ export const DroppableFolder = ({
           e.stopPropagation();
           openContextMenu(e.clientX, e.clientY, "folder", folder);
         }}
-        className={`font-semibold mb-1 flex items-center gap-1 pr-1 py-1 rounded cursor-pointer select-none`}
+        className={`font-semibold mb-1 flex items-center gap-1 pr-1 py-1 rounded cursor-pointer select-none min-w-0`}
         {...listeners}
         {...attributes}
       >
         <CaretRightIcon
-          className={`w-4 h-4 mr-1 transition-all duration-200 ease-in-out ${collapse ? "rotate-90" : ""} fill-ctp-mauve`}
+          className={`w-4 h-4 min-h-4 min-w-4 mr-1 transition-all duration-200 ease-in-out ${collapse ? "rotate-90" : ""} fill-ctp-mauve`}
         />
-        <FolderIcon className="w-4 h-4 fill-ctp-mauve mr-1" />
-        {folder.name}
+        <FolderIcon className="w-4 h-4 min-h-4 min-w-4 fill-ctp-mauve mr-1" />
+        <span className="truncate">{folder.name}</span>
       </div>
     </div>
   );

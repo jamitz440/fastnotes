@@ -1,8 +1,7 @@
-import React from "react";
 import { useDraggable } from "@dnd-kit/core";
-import { NoteRead } from "../../api/folders";
-import { useNoteStore } from "../../stores/notesStore";
-import { useContextMenu } from "../../contexts/ContextMenuContext";
+import { useContextMenu } from "@/contexts/ContextMenuContext";
+import { useNoteStore } from "@/stores/notesStore";
+import { NoteRead } from "@/api/folders";
 
 export const DraggableNote = ({ note }: { note: NoteRead }) => {
   const { selectedNote, setSelectedNote } = useNoteStore();
@@ -35,7 +34,7 @@ export const DraggableNote = ({ note }: { note: NoteRead }) => {
     >
       <div
         key={note.id}
-        onClick={(e) => {
+        onClick={() => {
           setSelectedNote(note);
         }}
         className={` rounded-sm px-2 mb-0.5 select-none cursor-pointer font-light transition-all duration-150 flex items-center gap-1 ${
@@ -44,7 +43,7 @@ export const DraggableNote = ({ note }: { note: NoteRead }) => {
             : "hover:bg-ctp-surface1"
         }`}
       >
-        <span>
+        <span className="truncate">
           {selectedNote?.id == note.id ? selectedNote.title : note.title}
         </span>
       </div>

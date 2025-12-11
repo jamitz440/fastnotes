@@ -21,7 +21,7 @@ export const Login = () => {
       setShowModal(false);
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
     }
   };
 

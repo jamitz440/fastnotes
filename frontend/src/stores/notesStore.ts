@@ -43,7 +43,9 @@ const updateFolder = (
   if (folder.children) {
     return {
       ...folder,
-      children: folder.children.map((f) => updateFolder(id, f, newFolder)),
+      children: folder.children.map((folder) =>
+        updateFolder(id, folder, newFolder),
+      ),
     };
   }
   return folder;

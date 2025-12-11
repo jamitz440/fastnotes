@@ -1,12 +1,9 @@
 import React, { useState, useRef, useEffect, SetStateAction } from "react";
+
 // @ts-ignore
-import FolderPlusIcon from "../../assets/fontawesome/svg/folder-plus.svg?react";
-// @ts-ignore
-import FileCirclePlusIcon from "../../assets/fontawesome/svg/file-circle-plus.svg?react";
-// @ts-ignore
-import FolderIcon from "../../assets/fontawesome/svg/folder.svg?react";
-import { DraggableNote } from "./DraggableNote";
-import { useNoteStore } from "../../stores/notesStore";
+import FolderIcon from "@/assets/fontawesome/svg/folder.svg?react";
+import { DraggableNote } from "./subcomponents/DraggableNote";
+
 import {
   DndContext,
   DragEndEvent,
@@ -17,12 +14,13 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 
-import { RecursiveFolder } from "./RecursiveFolder";
-import { useAuthStore } from "../../stores/authStore";
-import { useUIStore } from "../../stores/uiStore";
-import { NoteRead } from "../../api/folders";
+import { FolderTree } from "./subcomponents/FolderTree.tsx";
+import { SidebarHeader } from "./subcomponents/SideBarHeader.tsx";
+import { useAuthStore } from "@/stores/authStore.ts";
+import { useNoteStore } from "@/stores/notesStore.ts";
+import { useUIStore } from "@/stores/uiStore.ts";
 
-export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
+export const Sidebar = () => {
   const [newFolder, setNewFolder] = useState(false);
   const [newFolderText, setNewFolderText] = useState("");
   const [activeItem, setActiveItem] = useState<{
@@ -39,7 +37,7 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
     createFolder,
   } = useNoteStore();
 
-  const { isAuthenticated } = useAuthStore();
+  const { encryptionKey } = useAuthStore();
 
   const { setSideBarResize, sideBarResize } = useUIStore();
   useEffect(() => {
@@ -49,9 +47,9 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
   }, [newFolder]);
 
   useEffect(() => {
-    // if (!isAuthenticated) return;
+    if (!encryptionKey) return;
     loadFolderTree();
-  }, []);
+  }, [encryptionKey]);
 
   const handleCreateFolder = async () => {
     if (!newFolderText.trim()) return;
@@ -170,10 +168,7 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
           className="flex flex-col min-h-full"
           style={{ width: `${sideBarResize}px` }}
         >
-          <SidebarHeader
-            clearSelection={clearSelection}
-            setNewFolder={setNewFolder}
-          />
+          <SidebarHeader setNewFolder={setNewFolder} />
           <div
             className="bg-ctp-mantle min-h-full border-r border-ctp-surface2 w-full p-4 overflow-y-auto sm:block hidden flex-col gap-3"
             onDragOver={(e) => e.preventDefault()}
@@ -205,7 +200,7 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
             {/* Folder tree */}
             <div className="flex flex-col gap-1">
               {folderTree?.folders.map((folder) => (
-                <RecursiveFolder key={folder.id} folder={folder} depth={0} />
+                <FolderTree key={folder.id} folder={folder} depth={0} />
               ))}
             </div>
 
@@ -236,40 +231,5 @@ export const Sidebar = ({ clearSelection }: { clearSelection: () => void }) => {
         </div>
       </div>
     </DndContext>
-  );
-};
-
-export const SidebarHeader = ({
-  clearSelection,
-  setNewFolder,
-}: {
-  clearSelection: () => void;
-  setNewFolder: React.Dispatch<SetStateAction<boolean>>;
-}) => {
-  const { createNote, selectedFolder } = useNoteStore();
-  const handleCreate = async () => {
-    await createNote({
-      title: "Untitled",
-      content: "",
-      folder_id: selectedFolder,
-    });
-  };
-  return (
-    <div className="flex items-center justify-center w-full gap-2 bg-ctp-mantle border-b border-ctp-surface0 p-1">
-      <button
-        onClick={() => setNewFolder(true)}
-        className="hover:bg-ctp-mauve group transition-colors rounded-sm p-2"
-        title="New folder"
-      >
-        <FolderPlusIcon className="w-4 h-4 group-hover:fill-ctp-base transition-colors fill-ctp-mauve" />
-      </button>
-      <button
-        onClick={handleCreate}
-        className="hover:bg-ctp-mauve group transition-colors rounded-sm p-2 fill-ctp-mauve hover:fill-ctp-base"
-        title="New note"
-      >
-        <FileCirclePlusIcon className="w-4 h-4 text-ctp-mauve group-hover:text-ctp-base transition-colors" />
-      </button>
-    </div>
   );
 };

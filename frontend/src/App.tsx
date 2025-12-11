@@ -1,7 +1,7 @@
 // src/App.tsx
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import Home from "./pages/Home"; // existing home page
+import Home from "./pages/Home/Home.tsx"; // existing home page
 import { Import } from "./pages/Import";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";

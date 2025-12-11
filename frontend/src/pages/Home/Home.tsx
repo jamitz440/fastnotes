@@ -1,47 +1,33 @@
 import { useEffect, useRef, useState } from "react";
-import { notesApi } from "../api/notes";
-import "../main.css";
+import "../../main.css";
 import { motion } from "framer-motion";
-import "@mdxeditor/editor/style.css";
-// @ts-ignore
-import CheckIcon from "../assets/fontawesome/svg/circle-check.svg?react";
-// @ts-ignore
-import SpinnerIcon from "../assets/fontawesome/svg/rotate.svg?react";
-// @ts-ignore
-import WarningIcon from "../assets/fontawesome/svg/circle-exclamation.svg?react";
-import { useNoteStore } from "../stores/notesStore";
-import { Sidebar } from "../components/sidebar/SideBar";
-import { useUIStore } from "../stores/uiStore";
-import { TiptapEditor } from "./TipTap";
-import { useAuthStore } from "../stores/authStore";
-import { Login } from "./Login";
+import { useAuthStore } from "@/stores/authStore";
+import { useNoteStore } from "@/stores/notesStore";
+import { useUIStore } from "@/stores/uiStore";
+import { Login } from "../Login";
+import { TiptapEditor } from "../TipTap";
+import { Sidebar } from "./components/sidebar/SideBar";
+import { StatusIndicator } from "./components/StatusIndicator";
 
 function Home() {
-  const [newFolder, setNewFolder] = useState(false);
+  const [newFolder] = useState(false);
   const [lastSavedNote, setLastSavedNote] = useState<{
     id: number;
     title: string;
     content: string;
   } | null>(null);
 
-  const {
-    loadFolderTree,
-    updateNote,
-    setSelectedNote,
-    setContent,
-    selectedNote,
-    setTitle,
-  } = useNoteStore();
+  const { loadFolderTree, updateNote, setContent, selectedNote, setTitle } =
+    useNoteStore();
 
-  const { isAuthenticated, encryptionKey } = useAuthStore();
+  const { encryptionKey } = useAuthStore();
 
-  const { showModal, setShowModal } = useUIStore();
+  const { showModal, setUpdating } = useUIStore();
 
   const newFolderRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // if (!isAuthenticated) return;
-    console.log(encryptionKey);
+    if (!encryptionKey) return;
     loadFolderTree();
   }, []);
 
@@ -50,12 +36,6 @@ function Home() {
       newFolderRef.current.focus();
     }
   }, [newFolder]);
-
-  const clearSelection = () => {
-    setSelectedNote(null);
-  };
-
-  const { updating, setUpdating } = useUIStore();
 
   useEffect(() => {
     if (!selectedNote) return;
@@ -117,7 +97,7 @@ function Home() {
       {/* Sidebar */}
       {showModal && <Modal />}
 
-      <Sidebar clearSelection={clearSelection} />
+      <Sidebar />
 
       {/* Main editor area */}
       <div className="flex flex-col w-full h-screen overflow-hidden">
@@ -136,31 +116,7 @@ function Home() {
         />
       </div>
 
-      {/* Status indicator */}
-      <div
-        className="fixed bottom-2 right-3 bg-ctp-surface0 border border-ctp-surface2 rounded-sm px-2 py-0.5 flex items-center gap-2.5 shadow-lg backdrop-blur-sm"
-        onClick={() => {
-          if (!encryptionKey) {
-            setShowModal(true);
-          }
-        }}
-      >
-        {!encryptionKey ? (
-          <WarningIcon className="h-4 w-4 my-1 [&_.fa-primary]:fill-ctp-yellow [&_.fa-secondary]:fill-ctp-orange" />
-        ) : updating ? (
-          <>
-            <SpinnerIcon className="animate-spin h-4 w-4 [&_.fa-primary]:fill-ctp-blue [&_.fa-secondary]:fill-ctp-sapphire" />
-            <span className="text-sm text-ctp-subtext0 font-medium">
-              Saving...
-            </span>
-          </>
-        ) : (
-          <>
-            <CheckIcon className="h-4 w-4 [&_.fa-primary]:fill-ctp-green [&_.fa-secondary]:fill-ctp-teal" />
-            <span className="text-sm text-ctp-subtext0 font-medium">Saved</span>
-          </>
-        )}
-      </div>
+      <StatusIndicator />
     </div>
   );
 }
