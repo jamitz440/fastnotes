@@ -1,11 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useNoteStore } from "./notesStore";
 import {
   deriveKey,
   generateMasterKey,
   unwrapMasterKey,
   wrapMasterKey,
 } from "../api/encryption";
+import { FolderTree } from "@/pages/Home/components/sidebar/subcomponents/FolderTree";
 
 interface User {
   id: number;
@@ -30,6 +32,7 @@ interface AuthState {
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   initEncryptionKey: (password: string, salt: string) => Promise<void>;
+  clearAll: () => void;
 }
 
 const API_URL = "http://localhost:8000/api";
@@ -115,9 +118,10 @@ export const useAuthStore = create<AuthState>()(
 
         set({
           user: null,
-          encryptionKey: null, // Wipe from memory
+          encryptionKey: null,
           isAuthenticated: false,
         });
+        get().clearAll();
       },
 
       checkAuth: async () => {
@@ -137,6 +141,22 @@ export const useAuthStore = create<AuthState>()(
           get().logout();
         }
       },
+
+      clearAll: () => {
+        set({
+          user: null,
+          encryptionKey: null,
+          isAuthenticated: false,
+          rememberMe: false,
+        });
+
+        localStorage.clear();
+        useNoteStore.setState({
+          folderTree: null,
+          selectedFolder: null,
+          selectedNote: null,
+        });
+      },
     }),
     {
       name: "auth-storage",
@@ -149,3 +169,6 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 );
+if (typeof window !== "undefined") {
+  (window as any).useAuthStore = useAuthStore;
+}
