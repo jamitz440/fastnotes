@@ -36,15 +36,15 @@ const updateFolder = (
   id: number,
   folder: FolderTreeNode,
   newFolder: FolderUpdate,
-) => {
+): FolderTreeNode => {
   if (folder.id === id) {
     return { ...folder, ...newFolder };
   }
   if (folder.children) {
     return {
       ...folder,
-      children: folder.children.map((folder) =>
-        updateFolder(id, folder, newFolder),
+      children: folder.children.map((child) =>
+        updateFolder(id, child, newFolder),
       ),
     };
   }

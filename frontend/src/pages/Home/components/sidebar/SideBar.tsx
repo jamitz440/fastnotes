@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, SetStateAction } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 // @ts-ignore
 import FolderIcon from "@/assets/fontawesome/svg/folder.svg?react";
