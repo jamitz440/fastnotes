@@ -1,7 +1,7 @@
 import axios from "axios";
-import { NoteRead } from "./folders";
 import { encryptString, decryptString } from "./encryption";
 import { useAuthStore } from "../stores/authStore";
+import { Tag } from "./tags";
 axios.defaults.withCredentials = true;
 const API_URL = (import.meta as any).env.PROD
   ? "/api"
@@ -14,6 +14,7 @@ export interface Note {
   content: string;
   created_at: string;
   updated_at: string;
+  tags: Tag[];
 }
 
 export interface NoteCreate {
@@ -50,9 +51,12 @@ const fetchNotes = async () => {
       ...note,
       title: await decryptString(note.title, encryptionKey),
       content: await decryptString(note.content, encryptionKey),
+      tags: note.tags.map(async (tag) => ({
+        ...tag,
+        name: await decryptString(tag.name, encryptionKey),
+      })),
     })),
   );
-
   return decryptedNotes;
 };
 

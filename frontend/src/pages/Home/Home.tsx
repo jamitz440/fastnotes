@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "../../main.css";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuthStore } from "@/stores/authStore";
 import { useNoteStore } from "@/stores/notesStore";
 import { useUIStore } from "@/stores/uiStore";
@@ -8,6 +8,9 @@ import { Login } from "../Login";
 import { TiptapEditor } from "../TipTap";
 import { Sidebar } from "./components/sidebar/SideBar";
 import { StatusIndicator } from "./components/StatusIndicator";
+
+import { Tag, tagsApi } from "@/api/tags";
+import { useTagStore } from "@/stores/tagStore";
 
 function Home() {
   const [newFolder] = useState(false);
@@ -92,12 +95,30 @@ function Home() {
     }
   };
 
+  const { getTagTree, tagTree } = useTagStore();
+  const getTags = () => {
+    getTagTree();
+  };
   return (
     <div className="flex bg-ctp-base h-screen text-ctp-text overflow-hidden">
       {/* Sidebar */}
       {showModal && <Modal />}
 
       <Sidebar />
+      {/*<div className="flex flex-col">
+        <input
+          type="text"
+          value={tagName}
+          onChange={(e) => setTagName(e.target.value)}
+        />
+        <button onClick={createTag}>create</button>
+        {tags.map((tag) => (
+          <button onClick={() => deleteTag(tag.id)} key={tag.id}>
+            {tag.name}
+          </button>
+        ))}
+      </div>*/}
+      <button onClick={() => getTags()}>Click</button>
 
       {/* Main editor area */}
       <div className="flex flex-col w-full h-screen overflow-hidden">
@@ -109,6 +130,20 @@ function Home() {
           onChange={(e) => setTitle(e.target.value)}
           className="w-full px-4 py-3 text-3xl font-semibold bg-transparentfocus:outline-none focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
         />
+        <div className="px-4 py-2 border-b border-ctp-surface2 flex items-center gap-2 flex-wrap">
+          {selectedNote?.tags &&
+            selectedNote.tags.map((tag) => (
+              <button
+                onClick={() => null}
+                key={tag.id}
+                className="bg-ctp-surface0 px-1.5 text-sm rounded-full"
+              >
+                {tag.parent_id && "..."}
+                {tag.name}
+              </button>
+            ))}
+        </div>
+
         <TiptapEditor
           key={selectedNote?.id}
           content={selectedNote?.content || ""}
@@ -136,8 +171,53 @@ const Modal = () => {
         onClick={(e) => e.stopPropagation()}
         className="w-2/3 h-2/3 bg-ctp-base rounded-xl border-ctp-surface2 border p-5"
       >
-        <Login />
+        {/*<Login />*/}
+        <TagSelector />
       </div>
     </motion.div>
+  );
+};
+
+const TagSelector = () => {
+  const { tagTree } = useTagStore();
+  const [value, setValue] = useState("");
+  return (
+    <div>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+      {tagTree && tagTree.map((tag) => <TagTree tag={tag} />)}
+    </div>
+  );
+};
+
+export const TagTree = ({ tag, depth = 0 }: { tag: Tag; depth?: number }) => {
+  const [collapse, setCollapse] = useState(false);
+
+  return (
+    <div key={tag.id} className="flex flex-col relative">
+      <div onClick={() => setCollapse(!collapse)}>{tag.name}</div>
+      <AnimatePresence>
+        {collapse && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden flex flex-col"
+          >
+            {/* The line container */}
+            <div className="ml-2 pl-3 border-l border-ctp-surface2">
+              {/* Child tags */}
+              {tag.children.map((child) => (
+                <TagTree key={child.id} tag={child} depth={depth + 1} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { decryptFolderTree } from "./encryption";
 import { useAuthStore } from "../stores/authStore";
+import { Tag } from "./tags";
 
 axios.defaults.withCredentials = true;
 
@@ -22,6 +23,7 @@ export interface NoteRead {
   folder_id: number | null;
   created_at: string;
   updated_at: string;
+  tags: Tag[];
 }
 
 export interface FolderTreeNode {

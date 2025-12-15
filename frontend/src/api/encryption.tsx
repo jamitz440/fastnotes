@@ -114,6 +114,12 @@ export async function decryptFolderTree(
           ...note,
           title: await decryptString(note.title, encryptionKey),
           content: await decryptString(note.content, encryptionKey),
+          tags: await Promise.all(
+            note.tags.map(async (tag) => ({
+              ...tag,
+              name: await decryptString(tag.name, encryptionKey),
+            })),
+          ),
         })),
       ),
       children: await Promise.all(
@@ -131,6 +137,12 @@ export async function decryptFolderTree(
         ...note,
         title: await decryptString(note.title, encryptionKey),
         content: await decryptString(note.content, encryptionKey),
+        tags: await Promise.all(
+          note.tags.map(async (tag) => ({
+            ...tag,
+            name: await decryptString(tag.name, encryptionKey),
+          })),
+        ),
       })),
     ),
   };

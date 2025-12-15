@@ -2,7 +2,7 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Optional
 
-import bcrypt  # Use bcrypt directly instead of passlib
+import bcrypt
 from fastapi import Cookie, Depends, HTTPException, Request, status
 from sqlmodel import Session, select
 
@@ -11,7 +11,6 @@ from app.models import Session as SessionModel
 from app.models import User
 
 
-# Password hashing with bcrypt directly
 def hash_password(password: str) -> str:
     password_bytes = password.encode("utf-8")
     salt = bcrypt.gensalt()
@@ -25,12 +24,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
-# Session management
 def create_session(
     user_id: int, request: Request, db: Session, expires_in_days: int = 30
 ) -> str:
     session_id = secrets.token_urlsafe(32)
-    expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
+    expires_at = datetime.now() + timedelta(days=expires_in_days)
 
     db_session = SessionModel(
         session_id=session_id,
@@ -53,13 +51,12 @@ def get_session_user(session_id: Optional[str], db: Session) -> Optional[User]:
         select(SessionModel).where(SessionModel.session_id == session_id)
     ).first()
 
-    if not session or session.expires_at < datetime.utcnow():
+    if not session or session.expires_at < datetime.now():
         return None
 
     return session.user
 
 
-# Dependency for protected routes
 async def require_auth(
     session_id: Optional[str] = Cookie(None), db: Session = Depends(get_session)
 ) -> User:

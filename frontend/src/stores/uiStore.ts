@@ -19,7 +19,7 @@ export const useUIStore = create<UIState>()(
       setUpdating: (update) => {
         set({ updating: update });
       },
-      showModal: false,
+      showModal: true,
       setShowModal: (show) => {
         set({ showModal: show });
       },
