@@ -1,7 +1,20 @@
+from tkinter.constants import TOP
+
 from app.auth import require_auth
 from app.database import get_session
-from app.models import Note, NoteCreate, NoteTag, NoteUpdate, Tag, TagCreate, User
+from app.models import (
+    Note,
+    NoteCreate,
+    NoteTag,
+    NoteUpdate,
+    Tag,
+    TagCreate,
+    TagTreeNode,
+    TagTreeResponse,
+    User,
+)
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 router = APIRouter(prefix="/tags", tags=["tags"])
@@ -25,6 +38,27 @@ def create_tag(
     session.commit()
     session.refresh(db_tag)
     return db_tag
+
+
+def build_tag_tree_node(tag: Tag) -> TagTreeNode:
+    return TagTreeNode(
+        id= tag.id,
+        name = tag.name,
+        children = [build_tag_tree_node(child) for child in tag.children]
+    )
+
+
+
+@router.get("/tree")
+def get_tag_tree(session: Session = Depends(get_session)):
+    top_level_tags = session.exec(
+        select(Tag)
+        .options(selectinload(Tag.children))
+        .where(Tag.parent_id == None)
+    ).all()
+
+    tree = [build_tag_tree_node(tag) for tag in top_level_tags]
+    return TagTreeResponse(tags=tree)
 
 
 @router.post("/note/{note_id}/tag/{tag_id}")

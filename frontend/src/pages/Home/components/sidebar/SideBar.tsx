@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, SetStateAction } from "react";
 
 // @ts-ignore
 import FolderIcon from "@/assets/fontawesome/svg/folder.svg?react";
+// @ts-ignore
+import TagsIcon from "@/assets/fontawesome/svg/tags.svg?react";
 import { DraggableNote } from "./subcomponents/DraggableNote";
 
 import {
@@ -19,6 +21,7 @@ import { SidebarHeader } from "./subcomponents/SideBarHeader.tsx";
 import { useAuthStore } from "@/stores/authStore.ts";
 import { useNoteStore } from "@/stores/notesStore.ts";
 import { useUIStore } from "@/stores/uiStore.ts";
+import { TagSelector } from "../../Home.tsx";
 
 export const Sidebar = () => {
   const [newFolder, setNewFolder] = useState(false);
@@ -39,7 +42,8 @@ export const Sidebar = () => {
 
   const { encryptionKey } = useAuthStore();
 
-  const { setSideBarResize, sideBarResize } = useUIStore();
+  const { setSideBarResize, sideBarResize, sideBarView, setSideBarView } =
+    useUIStore();
   useEffect(() => {
     if (newFolder && newFolderRef.current) {
       newFolderRef.current.focus();
@@ -169,65 +173,73 @@ export const Sidebar = () => {
           style={{ width: `${sideBarResize}px` }}
         >
           <SidebarHeader setNewFolder={setNewFolder} />
-          <div
-            className="bg-ctp-mantle min-h-full border-r border-ctp-surface2 w-full p-4 overflow-y-auto sm:block hidden flex-col gap-3"
-            onDragOver={(e) => e.preventDefault()}
-            onTouchMove={(e) => e.preventDefault()}
-          >
-            {/* New folder input */}
-            {newFolder && (
-              <div className="mb-2">
-                <input
-                  onBlur={() => setNewFolder(false)}
-                  onChange={(e) => setNewFolderText(e.target.value)}
-                  value={newFolderText}
-                  type="text"
-                  placeholder="Folder name..."
-                  className="standard-input"
-                  ref={newFolderRef}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleCreateFolder();
-                    }
-                    if (e.key === "Escape") {
-                      setNewFolder(false);
-                    }
-                  }}
-                />
-              </div>
-            )}
+          {sideBarView == "folders" ? (
+            <>
+              <div
+                className="bg-ctp-mantle min-h-full border-r border-ctp-surface2 w-full p-4 overflow-y-auto sm:block hidden flex-col gap-3"
+                onDragOver={(e) => e.preventDefault()}
+                onTouchMove={(e) => e.preventDefault()}
+              >
+                {/* New folder input */}
+                {newFolder && (
+                  <div className="mb-2">
+                    <input
+                      onBlur={() => setNewFolder(false)}
+                      onChange={(e) => setNewFolderText(e.target.value)}
+                      value={newFolderText}
+                      type="text"
+                      placeholder="Folder name..."
+                      className="standard-input"
+                      ref={newFolderRef}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleCreateFolder();
+                        }
+                        if (e.key === "Escape") {
+                          setNewFolder(false);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
 
-            {/* Folder tree */}
-            <div className="flex flex-col gap-1">
-              {folderTree?.folders.map((folder) => (
-                <FolderTree key={folder.id} folder={folder} depth={0} />
-              ))}
-            </div>
-
-            {/* Orphaned notes */}
-            {folderTree?.orphaned_notes &&
-              folderTree.orphaned_notes.length > 0 && (
-                <div className="mt-4 flex flex-col gap-1">
-                  {folderTree.orphaned_notes.map((note) => (
-                    <DraggableNote key={note.id} note={note} />
+                {/* Folder tree */}
+                <div className="flex flex-col gap-1">
+                  {folderTree?.folders.map((folder) => (
+                    <FolderTree key={folder.id} folder={folder} depth={0} />
                   ))}
                 </div>
-              )}
-          </div>
 
-          <DragOverlay>
-            {activeItem?.type === "note" && (
-              <div className="bg-ctp-surface0 rounded-md px-2 py-1 shadow-lg border border-ctp-mauve">
-                {activeItem.data.title}
+                {/* Orphaned notes */}
+                {folderTree?.orphaned_notes &&
+                  folderTree.orphaned_notes.length > 0 && (
+                    <div className="mt-4 flex flex-col gap-1">
+                      {folderTree.orphaned_notes.map((note) => (
+                        <DraggableNote key={note.id} note={note} />
+                      ))}
+                    </div>
+                  )}
               </div>
-            )}
-            {activeItem?.type === "folder" && (
-              <div className="bg-ctp-surface0 rounded-md px-1 py-0.5 shadow-lg flex items-center gap-1 text-sm">
-                <FolderIcon className="w-3 h-3 fill-ctp-mauve mr-1" />
-                {activeItem.data.name}
-              </div>
-            )}
-          </DragOverlay>
+
+              <DragOverlay>
+                {activeItem?.type === "note" && (
+                  <div className="bg-ctp-surface0 rounded-md px-2 py-1 shadow-lg border border-ctp-mauve">
+                    {activeItem.data.title}
+                  </div>
+                )}
+                {activeItem?.type === "folder" && (
+                  <div className="bg-ctp-surface0 rounded-md px-1 py-0.5 shadow-lg flex items-center gap-1 text-sm">
+                    <FolderIcon className="w-3 h-3 fill-ctp-mauve mr-1" />
+                    {activeItem.data.name}
+                  </div>
+                )}
+              </DragOverlay>
+            </>
+          ) : (
+            <div className="bg-ctp-mantle min-h-full border-r border-ctp-surface2 w-full p-4 overflow-y-auto sm:block hidden flex-col gap-3">
+              <TagSelector />
+            </div>
+          )}
         </div>
       </div>
     </DndContext>

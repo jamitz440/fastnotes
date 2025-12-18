@@ -51,10 +51,12 @@ const fetchNotes = async () => {
       ...note,
       title: await decryptString(note.title, encryptionKey),
       content: await decryptString(note.content, encryptionKey),
-      tags: note.tags.map(async (tag) => ({
-        ...tag,
-        name: await decryptString(tag.name, encryptionKey),
-      })),
+      tags: await Promise.all(
+        note.tags.map(async (tag) => ({
+          ...tag,
+          name: await decryptString(tag.name, encryptionKey),
+        })),
+      ),
     })),
   );
   return decryptedNotes;

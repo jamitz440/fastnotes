@@ -10,6 +10,9 @@ interface UIState {
 
   sideBarResize: number;
   setSideBarResize: (size: number) => void;
+
+  sideBarView: string;
+  setSideBarView: (view: string) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -26,6 +29,10 @@ export const useUIStore = create<UIState>()(
       sideBarResize: 300,
       setSideBarResize: (size) => {
         set({ sideBarResize: size });
+      },
+      sideBarView: "folders",
+      setSideBarView: (view) => {
+        set({ sideBarView: view });
       },
     }),
     {

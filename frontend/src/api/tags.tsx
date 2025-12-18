@@ -1,5 +1,5 @@
 import axios from "axios";
-import { encryptString, decryptString } from "./encryption";
+import { encryptString, decryptTagTree } from "./encryption";
 import { useAuthStore } from "../stores/authStore";
 axios.defaults.withCredentials = true;
 const API_URL = (import.meta as any).env.PROD
@@ -20,42 +20,13 @@ export interface TagCreate {
   parent_id?: number;
 }
 
-const buildTagTree = (
-  tags: Tag[],
-  parent_id: string | number | null = null,
-  parentPath = "",
-): Tag[] => {
-  const result: Tag[] = [];
-  for (const tag of tags) {
-    if (tag.parent_id == parent_id) {
-      tag.parent_path = parentPath;
-
-      const currentPath = parentPath ? `${parentPath} › ${tag.name}` : tag.name;
-
-      tag.children = buildTagTree(tags, tag.id, currentPath);
-      result.push(tag);
-    }
-  }
-  return result;
-};
-
 const fetchTags = async () => {
   const encryptionKey = useAuthStore.getState().encryptionKey;
   if (!encryptionKey) throw new Error("Not authenticated");
 
-  const { data } = await axios.get(`${API_URL}/tags/`);
-
-  const decryptedTags = await Promise.all(
-    data.map(async (tag: Tag) => ({
-      ...tag,
-      name: await decryptString(tag.name, encryptionKey),
-    })),
-  );
-
-  const tags = buildTagTree(decryptedTags);
-
-  console.log(tags);
-
+  const { data } = await axios.get(`${API_URL}/tags/tree`);
+  const tags = decryptTagTree(data.tags, encryptionKey);
+  console.log(await tags);
   return tags;
 };
 

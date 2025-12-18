@@ -105,20 +105,19 @@ function Home() {
       {showModal && <Modal />}
 
       <Sidebar />
+      <button onClick={getTags}>create</button>
       {/*<div className="flex flex-col">
         <input
           type="text"
           value={tagName}
           onChange={(e) => setTagName(e.target.value)}
         />
-        <button onClick={createTag}>create</button>
         {tags.map((tag) => (
           <button onClick={() => deleteTag(tag.id)} key={tag.id}>
             {tag.name}
           </button>
         ))}
       </div>*/}
-      <button onClick={() => getTags()}>Click</button>
 
       {/* Main editor area */}
       <div className="flex flex-col w-full h-screen overflow-hidden">
@@ -178,16 +177,16 @@ const Modal = () => {
   );
 };
 
-const TagSelector = () => {
+export const TagSelector = () => {
   const { tagTree } = useTagStore();
   const [value, setValue] = useState("");
   return (
     <div>
-      <input
+      {/*<input
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-      />
+      />*/}
       {tagTree && tagTree.map((tag) => <TagTree tag={tag} />)}
     </div>
   );

@@ -78,7 +78,7 @@ export const useNoteStore = create<NoteState>()(
     (set, get) => ({
       loadFolderTree: async () => {
         const data = await folderApi.tree();
-        console.log(data);
+        // console.log(data);
         set({ folderTree: data });
       },
       folderTree: null,
