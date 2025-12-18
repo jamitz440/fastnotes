@@ -1,4 +1,5 @@
 import { FolderTreeResponse, FolderTreeNode } from "./folders";
+import { Tag } from "./tags";
 
 export async function deriveKey(password: string, salt: string) {
   const enc = new TextEncoder();
@@ -114,6 +115,12 @@ export async function decryptFolderTree(
           ...note,
           title: await decryptString(note.title, encryptionKey),
           content: await decryptString(note.content, encryptionKey),
+          tags: await Promise.all(
+            note.tags.map(async (tag) => ({
+              ...tag,
+              name: await decryptString(tag.name, encryptionKey),
+            })),
+          ),
         })),
       ),
       children: await Promise.all(
@@ -131,7 +138,35 @@ export async function decryptFolderTree(
         ...note,
         title: await decryptString(note.title, encryptionKey),
         content: await decryptString(note.content, encryptionKey),
+        tags: await Promise.all(
+          note.tags.map(async (tag) => ({
+            ...tag,
+            name: await decryptString(tag.name, encryptionKey),
+          })),
+        ),
       })),
     ),
   };
 }
+
+export const decryptTagTree = async (
+  tags: Tag[],
+  key: CryptoKey,
+  parentPath = "",
+): Promise<Tag[]> => {
+  return Promise.all(
+    tags.map(async (tag) => {
+      const decryptedName = await decryptString(tag.name, key);
+      const currentPath = parentPath
+        ? `${parentPath} › ${decryptedName}`
+        : decryptedName;
+
+      return {
+        ...tag,
+        name: decryptedName,
+        parent_path: parentPath,
+        children: await decryptTagTree(tag.children, key, currentPath),
+      };
+    }),
+  );
+};

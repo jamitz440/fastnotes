@@ -1,8 +1,5 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException  # type: ignore
-from sqlmodel import Session, select  # type: ignore
-
 from app.auth import require_auth
 from app.database import get_session
 from app.models import (
@@ -15,6 +12,9 @@ from app.models import (
     NoteRead,
     User,
 )
+from fastapi import APIRouter, Depends, HTTPException  # type: ignore
+from sqlalchemy.orm import selectinload
+from sqlmodel import Session, select  # type: ignore
 
 router = APIRouter(prefix="/folders", tags=["folders"])
 
@@ -35,21 +35,20 @@ def get_folder_tree(
 ):
     """Get complete folder tree with notes"""
 
-    # Get all top-level folders (parent_id is None) for current user
     top_level_folders = session.exec(
         select(Folder)
+        .options(selectinload(Folder.notes).selectinload(Note.tags))
         .where(Folder.parent_id == None)
         .where(Folder.user_id == current_user.id)
     ).all()
 
-    # Get all orphaned notes (folder_id is None) for current user
     orphaned_notes = session.exec(
         select(Note)
+        .options(selectinload(Note.tags))
         .where(Note.folder_id == None)
         .where(Note.user_id == current_user.id)
     ).all()
 
-    # Build tree recursively
     tree = [build_folder_tree_node(folder) for folder in top_level_folders]
 
     return FolderTreeResponse(

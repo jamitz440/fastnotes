@@ -13,15 +13,15 @@ interface User {
   id: number;
   username: string;
   email: string;
-  salt: string; // For key derivation
+  salt: string;
 }
 
 interface AuthState {
   user: User | null;
-  encryptionKey: CryptoKey | null; // Memory only!
+  encryptionKey: CryptoKey | null;
   isAuthenticated: boolean;
   rememberMe: boolean;
-  setRememberMe: (boolean) => void;
+  setRememberMe: (remember: boolean) => void;
 
   login: (username: string, password: string) => Promise<void>;
   register: (
@@ -48,7 +48,6 @@ export const useAuthStore = create<AuthState>()(
         set({ rememberMe: bool });
       },
       initEncryptionKey: async (password: string, salt: string) => {
-        // Use user-specific salt instead of hardcoded
         const key = await deriveKey(password, salt);
         set({ encryptionKey: key });
       },
@@ -79,7 +78,6 @@ export const useAuthStore = create<AuthState>()(
 
         const data = await response.json();
 
-        // Store the master key directly (not derived from password)
         set({
           user: data.user,
           isAuthenticated: true,
@@ -102,11 +100,9 @@ export const useAuthStore = create<AuthState>()(
 
         const { user } = await response.json();
 
-        // Derive KEK and unwrap master key
         const kek = await deriveKey(password, user.salt);
         const masterKey = await unwrapMasterKey(user.wrapped_master_key, kek);
 
-        // Store master key in memory
         set({ encryptionKey: masterKey, user, isAuthenticated: true });
       },
 

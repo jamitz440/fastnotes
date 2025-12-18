@@ -10,6 +10,9 @@ interface UIState {
 
   sideBarResize: number;
   setSideBarResize: (size: number) => void;
+
+  sideBarView: string;
+  setSideBarView: (view: string) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -19,13 +22,17 @@ export const useUIStore = create<UIState>()(
       setUpdating: (update) => {
         set({ updating: update });
       },
-      showModal: false,
+      showModal: true,
       setShowModal: (show) => {
         set({ showModal: show });
       },
       sideBarResize: 300,
       setSideBarResize: (size) => {
         set({ sideBarResize: size });
+      },
+      sideBarView: "folders",
+      setSideBarView: (view) => {
+        set({ sideBarView: view });
       },
     }),
     {
