@@ -25,29 +25,29 @@ export const SidebarHeader = ({
   };
   return (
     <div className="w-full p-2 border-b border-ctp-surface2 bg-ctp-mantle">
-      <div className="flex items-center justify-around bg-ctp-surface0 rounded-lg p-0.5">
+      <div className="flex items-center justify-around bg-ctp-surface0 rounded-lg p-1 gap-1">
         <button
           onClick={() => setNewFolder(true)}
-          className="hover:bg-ctp-mauve group transition-colors rounded-sm p-1 m-1"
+          className="hover:bg-ctp-mauve active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md"
           title="New folder"
         >
-          <FolderPlusIcon className="w-5 h-5 group-hover:fill-ctp-base transition-colors fill-ctp-mauve" />
+          <FolderPlusIcon className="w-5 h-5 group-hover:fill-ctp-base transition-all duration-200 fill-ctp-mauve" />
         </button>
         <button
           onClick={() =>
             setSideBarView(sideBarView == "tags" ? "folders" : "tags")
           }
-          className="hover:bg-ctp-mauve group transition-colors rounded-sm p-1 m-1"
+          className={`${sideBarView === "tags" ? "bg-ctp-mauve/20" : ""} hover:bg-ctp-mauve active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md`}
           title="Tags"
         >
-          <TagsIcon className="w-5 h-5 group-hover:fill-ctp-base transition-colors fill-ctp-mauve" />
+          <TagsIcon className="w-5 h-5 group-hover:fill-ctp-base transition-all duration-200 fill-ctp-mauve" />
         </button>
         <button
           onClick={handleCreate}
-          className="hover:bg-ctp-mauve group transition-colors rounded-sm p-1 m-1 fill-ctp-mauve hover:fill-ctp-base"
+          className="hover:bg-ctp-mauve active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md"
           title="New note"
         >
-          <FileCirclePlusIcon className="w-5 h-5 text-ctp-mauve group-hover:text-ctp-base transition-colors" />
+          <FileCirclePlusIcon className="w-5 h-5 group-hover:fill-ctp-base transition-all duration-200 fill-ctp-mauve" />
         </button>
       </div>
     </div>

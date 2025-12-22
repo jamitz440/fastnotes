@@ -9,14 +9,16 @@ import { Sidebar } from "./components/sidebar/SideBar";
 import { StatusIndicator } from "./components/StatusIndicator";
 import { useCreateTag, useTagTree } from "@/hooks/useTags";
 import { useFolderTree, useUpdateNote } from "@/hooks/useFolders";
-import { Note } from "@/api/notes";
+import { Note, NoteRead } from "@/api/notes";
 import { DecryptedTagNode } from "@/api/encryption";
+// @ts-ignore
+import XmarkIcon from "@/assets/fontawesome/svg/xmark.svg?react";
 
 function Home() {
   const [newFolder] = useState(false);
 
   // Local state for editing the current note
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editingNote, setEditingNote] = useState<NoteRead | null>(null);
   const [lastSavedNote, setLastSavedNote] = useState<{
     id: number;
     title: string;
@@ -85,6 +87,7 @@ function Home() {
     }
 
     try {
+      if (!editingNote.id) throw new Error("Editing note has no id.");
       await updateNoteMutation.mutateAsync({
         noteId: editingNote.id,
         note: {
@@ -116,51 +119,41 @@ function Home() {
   return (
     <div className="flex bg-ctp-base h-screen text-ctp-text overflow-hidden">
       {/* Sidebar */}
-      {showModal && <Modal />}
+      <AnimatePresence>{showModal && <Modal />}</AnimatePresence>
 
       <Sidebar />
-      {/*<div className="flex flex-col">
-        <input
-          type="text"
-          value={tagName}
-          onChange={(e) => setTagName(e.target.value)}
-        />
-        {tags.map((tag) => (
-          <button onClick={() => deleteTag(tag.id)} key={tag.id}>
-            {tag.name}
-          </button>
-        ))}
-      </div>*/}
 
       {/* Main editor area */}
-      <div className="flex flex-col w-full h-screen overflow-hidden">
+      <div className="flex flex-col w-full h-screen overflow-y-auto items-center justify-center">
         {/*<Editor />*/}
-        <input
-          type="text"
-          placeholder="Untitled note..."
-          value={editingNote?.title || ""}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full px-4 py-3 text-3xl font-semibold bg-transparentfocus:outline-none focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
-        />
-        <div className="px-4 py-2 border-b border-ctp-surface2 flex items-center gap-2 flex-wrap">
-          {editingNote?.tags &&
-            editingNote.tags.map((tag) => (
-              <button
-                onClick={() => null}
-                key={tag.id}
-                className="bg-ctp-surface0 px-1.5 text-sm rounded-full"
-              >
-                {tag.parentId && "..."}
-                {tag.name}
-              </button>
-            ))}
-        </div>
+        <div className="h-full lg:w-3xl w-full">
+          <input
+            type="text"
+            placeholder="Untitled note..."
+            value={editingNote?.title || ""}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-4 pb-0 text-3xl font-semibold bg-transparent focus:outline-none border-transparent focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
+          />
+          {/*<div className="px-4 py-2  border-ctp-surface2 flex items-center gap-2 flex-wrap">
+            {editingNote?.tags &&
+              editingNote.tags.map((tag) => (
+                <button
+                  onClick={() => null}
+                  key={tag.id}
+                  className="bg-ctp-surface0 hover:bg-ctp-surface1 px-2 py-0.5 text-sm rounded-full transition-colors"
+                >
+                  {tag.parentId && "..."}
+                  {tag.name}
+                </button>
+              ))}
+          </div>*/}
 
-        <TiptapEditor
-          key={editingNote?.id}
-          content={editingNote?.content || ""}
-          onChange={setContent}
-        />
+          <TiptapEditor
+            key={editingNote?.id}
+            content={editingNote?.content || ""}
+            onChange={setContent}
+          />
+        </div>
       </div>
 
       <StatusIndicator />
@@ -176,16 +169,28 @@ const Modal = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       onClick={() => setShowModal(false)}
-      className="absolute h-screen w-screen flex items-center justify-center bg-ctp-crust/60 z-50"
+      className="fixed inset-0 h-screen w-screen flex items-center justify-center bg-ctp-crust/70 backdrop-blur-sm z-50"
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ type: "spring", duration: 0.3 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-2/3 h-2/3 bg-ctp-base rounded-xl border-ctp-surface2 border p-5"
+        className="relative w-full max-w-md mx-4 bg-ctp-base rounded-xl border-ctp-surface2 border p-8 shadow-2xl"
       >
+        <button
+          onClick={() => setShowModal(false)}
+          className="absolute top-4 right-4 p-2 hover:bg-ctp-surface0 rounded-sm transition-colors group"
+          aria-label="Close modal"
+        >
+          <XmarkIcon className="w-5 h-5 fill-ctp-overlay0 group-hover:fill-ctp-text transition-colors" />
+        </button>
         <Login />
         {/*<TagSelector />*/}
-      </div>
+      </motion.div>
     </motion.div>
   );
 };

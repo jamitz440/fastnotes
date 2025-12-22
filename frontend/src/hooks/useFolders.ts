@@ -104,10 +104,14 @@ export const useUpdateFolder = () => {
             folders: FolderTreeNode[],
           ): FolderTreeNode[] => {
             return folders.map((f) => {
-              if (f.id == folderId) {
+              if (f.id === folderId) {
                 return {
                   ...f,
-                  ...folder,
+                  ...(folder.name !== undefined &&
+                    folder.name !== null && { name: folder.name }),
+                  ...(folder.parentId !== undefined && {
+                    parentId: folder.parentId,
+                  }),
                 };
               }
               return {

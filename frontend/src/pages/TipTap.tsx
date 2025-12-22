@@ -79,7 +79,7 @@ export const TiptapEditor = ({
   }
 
   return (
-    <div className="tiptap-editor h-full">
+    <div className="tiptap-editor pt-0">
       {/* Toolbar */}
       {/*<div className="editor-toolbar">
         <div className="toolbar-group">

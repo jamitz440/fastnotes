@@ -2,14 +2,14 @@ from datetime import datetime
 
 from app.auth import require_auth
 from app.database import get_session
-from app.models import Note, NoteCreate, NoteUpdate, User
+from app.models import Note, NoteCreate, NoteRead, NoteUpdate, User
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
 
-@router.get("/")
+@router.get("/", response_model=list[NoteRead])
 def list_notes(session: Session = Depends(get_session)):
     notes = session.exec(select(Note).order_by(Note.updated_at.desc())).all()  # pyright: ignore[reportAttributeAccessIssue]
     return notes

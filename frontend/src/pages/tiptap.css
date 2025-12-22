@@ -80,7 +80,7 @@
 }
 
 .ProseMirror h3 {
-    @apply text-xl font-semibold text-ctp-teal mt-5 mb-2;
+    @apply text-xl font-semibold text-ctp-mauve mt-5 mb-2;
 }
 
 .ProseMirror code {
@@ -149,11 +149,12 @@
 .ProseMirror li[data-checked="true"] > div > p {
     @apply line-through text-ctp-overlay0;
     text-decoration-style: wavy;
+    text-decoration-thickness: 1px;
 }
 
 .ProseMirror u {
     @apply decoration-ctp-mauve;
-    text-decoration-style: wavy;
+    /*text-decoration-style: wavy;*/
 }
 
 .ProseMirror li::marker {

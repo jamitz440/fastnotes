@@ -1,4 +1,4 @@
-import { Note } from "@/api/notes";
+import { Note, NoteRead } from "@/api/notes";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -15,8 +15,8 @@ interface UIState {
   sideBarView: string;
   setSideBarView: (view: string) => void;
 
-  selectedNote: Note | null;
-  setSelectedNote: (note: Note | null) => void;
+  selectedNote: NoteRead | null;
+  setSelectedNote: (note: NoteRead | null) => void;
 
   selectedFolder: number | null;
   setSelectedFolder: (id: number | null) => void;
@@ -43,7 +43,7 @@ export const useUIStore = create<UIState>()(
       },
       selectedNote: null,
 
-      setSelectedNote: (id: Note | null) => {
+      setSelectedNote: (id: NoteRead | null) => {
         set({ selectedNote: id });
       },
       selectedFolder: null,
