@@ -7,7 +7,6 @@ import {
   unwrapMasterKey,
   wrapMasterKey,
 } from "../api/encryption";
-import { FolderTree } from "@/pages/Home/components/sidebar/subcomponents/FolderTree";
 
 interface User {
   id: number;
@@ -147,11 +146,6 @@ export const useAuthStore = create<AuthState>()(
         });
 
         localStorage.clear();
-        useNoteStore.setState({
-          folderTree: null,
-          selectedFolder: null,
-          selectedNote: null,
-        });
       },
     }),
     {

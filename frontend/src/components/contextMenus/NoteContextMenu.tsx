@@ -1,12 +1,12 @@
 import React from "react";
-import { NoteRead } from "../../api/folders";
-import { useNoteStore } from "../../stores/notesStore";
-import { notesApi } from "../../api/notes";
+import { Note } from "../../api/notes";
+import { useCreateNote, useDeleteNote } from "../../hooks/useFolders";
+import { useUIStore } from "../../stores/uiStore";
 
 interface NoteContextMenuProps {
   x: number;
   y: number;
-  note: NoteRead;
+  note: Note;
   onClose: () => void;
 }
 
@@ -16,12 +16,15 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
   note,
   onClose,
 }) => {
-  const { loadFolderTree, setSelectedNote } = useNoteStore();
+  const { setSelectedNote } = useUIStore();
+  const deleteNoteMutation = useDeleteNote();
+  const createNoteMutation = useCreateNote();
 
   const handleDelete = async () => {
     try {
-      await notesApi.delete(note.id);
-      await loadFolderTree();
+      await deleteNoteMutation.mutateAsync(note.id);
+      // Clear selection if this note was selected
+      setSelectedNote(null);
       onClose();
     } catch (error) {
       console.error("Failed to delete note:", error);
@@ -30,12 +33,11 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
 
   const handleDuplicate = async () => {
     try {
-      await notesApi.create({
+      await createNoteMutation.mutateAsync({
         title: `${note.title} (Copy)`,
         content: note.content,
-        folder_id: note.folder_id,
+        folder_id: note.folder_id || null,
       });
-      await loadFolderTree();
       onClose();
     } catch (error) {
       console.error("Failed to duplicate note:", error);

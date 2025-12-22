@@ -1,27 +1,15 @@
-import axios from "axios";
 import { encryptString, decryptString } from "./encryption";
 import { useAuthStore } from "../stores/authStore";
-import { Tag } from "./tags";
-axios.defaults.withCredentials = true;
-const API_URL = (import.meta as any).env.PROD
-  ? "/api"
-  : "http://localhost:8000/api";
+import { CamelCasedPropertiesDeep } from "type-fest";
+import { components } from "@/types/api";
+import client from "./client";
 
-export interface Note {
-  id: number;
-  title: string;
-  folder_id?: number;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  tags: Tag[];
-}
-
-export interface NoteCreate {
-  title: string;
-  content: string;
-  folder_id: number | null;
-}
+export type NoteRead = CamelCasedPropertiesDeep<
+  components["schemas"]["NoteRead"]
+>;
+export type NoteCreate = CamelCasedPropertiesDeep<
+  components["schemas"]["NoteCreate"]
+>;
 
 const createNote = async (note: NoteCreate) => {
   const encryptionKey = useAuthStore.getState().encryptionKey;
@@ -33,21 +21,21 @@ const createNote = async (note: NoteCreate) => {
   var encryptedNote = {
     title: noteTitle,
     content: noteContent,
-    folder_id: note.folder_id,
+    folderId: note.folderId,
   };
 
   console.log(encryptedNote);
-  return axios.post(`${API_URL}/notes/`, encryptedNote);
+  return client.POST(`/api/notes/`, { body: encryptedNote });
 };
 const fetchNotes = async () => {
   const encryptionKey = useAuthStore.getState().encryptionKey;
   if (!encryptionKey) throw new Error("Not authenticated");
 
-  const { data } = await axios.get(`${API_URL}/notes/`);
+  const { data } = await client.GET(`/api/notes/`);
 
   console.log(data);
   const decryptedNotes = await Promise.all(
-    data.map(async (note: Note) => ({
+    data.map(async (note: NoteRead) => ({
       ...note,
       title: await decryptString(note.title, encryptionKey),
       content: await decryptString(note.content, encryptionKey),
@@ -62,28 +50,58 @@ const fetchNotes = async () => {
   return decryptedNotes;
 };
 
-const updateNote = async (id: number, note: Partial<Note>) => {
+const updateNote = async (id: number, note: Partial<NoteRead>) => {
   const encryptionKey = useAuthStore.getState().encryptionKey;
   if (!encryptionKey) throw new Error("Not authenticated");
 
-  var encryptedNote: Partial<Note> = {};
+  var encryptedNote: Partial<NoteRead> = {};
   if (note.content) {
     encryptedNote.content = await encryptString(note.content, encryptionKey);
   }
   if (note.title) {
     encryptedNote.title = await encryptString(note.title, encryptionKey);
   }
-  if (note.folder_id) {
-    encryptedNote.folder_id = note.folder_id;
+  if (note.folderId) {
+    encryptedNote.folderId = note.folderId;
   }
+  // if (!note.folderId){
+  //   throw new Error("Folder id missing from note.")
+  // }
+  const { data, error } = await client.PATCH(`/api/notes/{note_id}`, {
+    body: encryptedNote,
+    params: {
+      path: {
+        note_id: id,
+      },
+    },
+  });
 
-  return axios.patch(`${API_URL}/notes/${id}`, encryptedNote);
+  if (data) {
+    console.log(data);
+  }
+  if (error) {
+    console.log(error);
+  }
 };
 
 export const notesApi = {
   list: () => fetchNotes(),
-  get: (id: number) => axios.get(`${API_URL}/notes/${id}`),
+  get: (id: number) =>
+    client.GET(`/api/notes/{note_id}`, {
+      params: {
+        path: {
+          note_id: id,
+        },
+      },
+    }),
   create: (note: NoteCreate) => createNote(note),
-  update: (id: number, note: Partial<Note>) => updateNote(id, note),
-  delete: (id: number) => axios.delete(`${API_URL}/notes/${id}`),
+  update: (id: number, note: Partial<NoteRead>) => updateNote(id, note),
+  delete: (id: number) =>
+    client.DELETE(`/api/notes/{note_id}`, {
+      params: {
+        path: {
+          note_id: id,
+        },
+      },
+    }),
 };

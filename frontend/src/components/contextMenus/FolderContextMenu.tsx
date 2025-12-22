@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { FolderTreeNode } from "../../api/folders";
-import { useNoteStore } from "../../stores/notesStore";
-import { folderApi } from "../../api/folders";
+import {
+  useCreateFolder,
+  useUpdateFolder,
+  useDeleteFolder,
+} from "../../hooks/useFolders";
 
 interface FolderContextMenuProps {
   x: number;
@@ -16,7 +19,10 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
   folder,
   onClose,
 }) => {
-  const { loadFolderTree, updateFolder } = useNoteStore();
+  const createFolderMutation = useCreateFolder();
+  const updateFolderMutation = useUpdateFolder();
+  const deleteFolderMutation = useDeleteFolder();
+
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(folder.name);
 
@@ -25,8 +31,7 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
       return;
     }
     try {
-      await folderApi.delete(folder.id);
-      await loadFolderTree();
+      await deleteFolderMutation.mutateAsync(folder.id);
       onClose();
     } catch (error) {
       console.error("Failed to delete folder:", error);
@@ -35,7 +40,14 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
 
   const handleRename = async () => {
     if (newName.trim() && newName !== folder.name) {
-      await updateFolder(folder.id, { name: newName });
+      try {
+        await updateFolderMutation.mutateAsync({
+          folderId: folder.id,
+          folder: { name: newName },
+        });
+      } catch (error) {
+        console.error("Failed to rename folder:", error);
+      }
     }
     setIsRenaming(false);
     onClose();
@@ -43,11 +55,10 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
 
   const handleCreateSubfolder = async () => {
     try {
-      await folderApi.create({
+      await createFolderMutation.mutateAsync({
         name: "New Folder",
         parent_id: folder.id,
       });
-      await loadFolderTree();
       onClose();
     } catch (error) {
       console.error("Failed to create subfolder:", error);

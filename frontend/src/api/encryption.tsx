@@ -1,5 +1,23 @@
-import { FolderTreeResponse, FolderTreeNode } from "./folders";
-import { Tag } from "./tags";
+import { components } from "@/types/api";
+// encryption.tsx
+import { CamelCasedPropertiesDeep } from "type-fest";
+import { FolderTreeResponse } from "./folders";
+export type Tag = CamelCasedPropertiesDeep<components["schemas"]["Tag"]>;
+export type FolderTreeNode = CamelCasedPropertiesDeep<
+  components["schemas"]["FolderTreeNode"]
+>;
+export type TagTreeNode = CamelCasedPropertiesDeep<
+  components["schemas"]["TagTreeNode"]
+>;
+
+export interface DecryptedTagNode {
+  id?: number | null | undefined;
+  name: string;
+  parentId?: number | null;
+  createdAt?: string;
+  parentPath: string;
+  children: DecryptedTagNode[];
+}
 
 export async function deriveKey(password: string, salt: string) {
   const enc = new TextEncoder();
@@ -133,8 +151,8 @@ export async function decryptFolderTree(
     folders: await Promise.all(
       tree.folders.map((folder) => decryptFolder(folder)),
     ),
-    orphaned_notes: await Promise.all(
-      tree.orphaned_notes.map(async (note) => ({
+    orphanedNotes: await Promise.all(
+      tree.orphanedNotes.map(async (note) => ({
         ...note,
         title: await decryptString(note.title, encryptionKey),
         content: await decryptString(note.content, encryptionKey),
@@ -150,10 +168,10 @@ export async function decryptFolderTree(
 }
 
 export const decryptTagTree = async (
-  tags: Tag[],
+  tags: TagTreeNode[],
   key: CryptoKey,
   parentPath = "",
-): Promise<Tag[]> => {
+): Promise<DecryptedTagNode[]> => {
   return Promise.all(
     tags.map(async (tag) => {
       const decryptedName = await decryptString(tag.name, key);
@@ -164,7 +182,7 @@ export const decryptTagTree = async (
       return {
         ...tag,
         name: decryptedName,
-        parent_path: parentPath,
+        parentPath: parentPath,
         children: await decryptTagTree(tag.children, key, currentPath),
       };
     }),

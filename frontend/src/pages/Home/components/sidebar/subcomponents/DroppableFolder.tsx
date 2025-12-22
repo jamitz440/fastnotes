@@ -4,7 +4,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import CaretRightIcon from "@/assets/fontawesome/svg/caret-right.svg?react";
 // @ts-ignore
 import FolderIcon from "@/assets/fontawesome/svg/folder.svg?react";
-import { Folder } from "@/api/folders";
+import { FolderTreeNode } from "@/api/folders";
 import { useContextMenu } from "@/contexts/ContextMenuContext";
 
 export const DroppableFolder = ({
@@ -12,7 +12,7 @@ export const DroppableFolder = ({
   setCollapse,
   collapse,
 }: {
-  folder: Partial<Folder>;
+  folder: Partial<FolderTreeNode>;
   setCollapse: React.Dispatch<React.SetStateAction<boolean>>;
   collapse: boolean;
 }) => {
@@ -63,9 +63,11 @@ export const DroppableFolder = ({
         {...listeners}
         {...attributes}
       >
-        <CaretRightIcon
-          className={`w-4 h-4 min-h-4 min-w-4 mr-1 transition-all duration-200 ease-in-out ${collapse ? "rotate-90" : ""} fill-ctp-mauve`}
-        />
+        {(folder.notes?.length ?? 0) > 0 && (
+          <CaretRightIcon
+            className={`w-4 h-4 min-h-4 min-w-4 mr-1 transition-all duration-200 ease-in-out ${collapse ? "rotate-90" : ""} fill-ctp-mauve`}
+          />
+        )}
         <FolderIcon className="w-4 h-4 min-h-4 min-w-4 fill-ctp-mauve mr-1" />
         <span className="truncate">{folder.name}</span>
       </div>

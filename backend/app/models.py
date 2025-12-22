@@ -108,6 +108,8 @@ class TagUpdate(SQLModel):
 class TagTreeNode(SQLModel):
     id: int
     name: str
+    parent_id: Optional[int] = None
+    created_at: datetime
     children: List["TagTreeNode"] = []
 
 

@@ -1,10 +1,10 @@
 import { useDraggable } from "@dnd-kit/core";
 import { useContextMenu } from "@/contexts/ContextMenuContext";
-import { useNoteStore } from "@/stores/notesStore";
-import { NoteRead } from "@/api/folders";
+import { useUIStore } from "@/stores/uiStore";
+import { NoteRead } from "@/api/notes";
 
 export const DraggableNote = ({ note }: { note: NoteRead }) => {
-  const { selectedNote, setSelectedNote } = useNoteStore();
+  const { selectedNote, setSelectedNote } = useUIStore();
   const { openContextMenu } = useContextMenu();
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =

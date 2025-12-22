@@ -1,63 +1,90 @@
-import axios from "axios";
+import { client } from "./client";
+import { components } from "@/types/api";
 import { encryptString, decryptTagTree } from "./encryption";
 import { useAuthStore } from "../stores/authStore";
-axios.defaults.withCredentials = true;
-const API_URL = (import.meta as any).env.PROD
-  ? "/api"
-  : "http://localhost:8000/api";
+import { CamelCasedPropertiesDeep } from "type-fest";
 
-export interface Tag {
-  id: string;
-  name: string;
-  parent_id?: number;
-  created_at: string;
-  children: Tag[];
-  parent_path: string;
-}
+export type Tag = CamelCasedPropertiesDeep<components["schemas"]["Tag"]>;
 
-export interface TagCreate {
-  name: string;
-  parent_id?: number;
-}
+export type TagTreeNode = CamelCasedPropertiesDeep<
+  components["schemas"]["TagTreeNode"]
+>;
+export type TagCreate = CamelCasedPropertiesDeep<
+  components["schemas"]["TagCreate"]
+>;
+export type TagRead = CamelCasedPropertiesDeep<
+  components["schemas"]["TagRead"]
+>;
+export type TagTreeResponse = CamelCasedPropertiesDeep<
+  components["schemas"]["TagTreeResponse"]
+>;
 
 const fetchTags = async () => {
   const encryptionKey = useAuthStore.getState().encryptionKey;
   if (!encryptionKey) throw new Error("Not authenticated");
 
-  const { data } = await axios.get(`${API_URL}/tags/tree`);
-  const tags = decryptTagTree(data.tags, encryptionKey);
-  console.log(await tags);
+  const response = await client.GET("/api/tags/tree", {});
+
+  if (response.error) throw new Error("Failed to fetch tags");
+  if (!response.data) throw new Error("No data returned");
+
+  const data = response.data;
+
+  const tags = decryptTagTree(data.tags as any, encryptionKey);
   return tags;
 };
 
-const createTag = async (tag: TagCreate, noteId?: number) => {
+const createTag = async (tag: TagCreate): Promise<TagTreeNode> => {
   const encryptionKey = useAuthStore.getState().encryptionKey;
   if (!encryptionKey) throw new Error("Not authenticated");
 
   const tagName = await encryptString(tag.name, encryptionKey);
-  const encryptedTag = {
-    name: tagName,
-    parent_id: tag.parent_id,
-  };
 
-  const r = await axios.post(`${API_URL}/tags/`, encryptedTag);
-  console.log(r);
+  // Use the exact structure from TagCreate schema
+  const { data, error } = await client.POST("/api/tags/", {
+    body: {
+      name: tagName,
+      parentId: tag.parentId || null,
+    },
+  });
 
-  if (noteId) {
-    return await addTagToNote(r.data.id, noteId);
-  }
+  if (error) throw new Error("Failed to create tag");
+  console.log(data);
+  return data as unknown as TagTreeNode;
 };
 
 const addTagToNote = async (tagId: number, noteId: number) => {
-  return axios.post(`${API_URL}/tags/note/${noteId}/tag/${tagId}`);
+  const { data, error } = await client.POST(
+    "/api/tags/note/{note_id}/tag/{tag_id}",
+    {
+      params: {
+        path: {
+          note_id: noteId,
+          tag_id: tagId,
+        },
+      },
+    },
+  );
+
+  if (error) throw new Error("Failed to add tag to note");
+  return data;
 };
 
 const deleteTag = async (tagId: number) => {
-  return axios.delete(`${API_URL}/tags/${tagId}`);
+  const { error } = await client.DELETE("/api/tags/{tag_id}", {
+    params: {
+      path: {
+        tag_id: tagId,
+      },
+    },
+  });
+
+  if (error) throw new Error("Failed to delete tag");
 };
 
 export const tagsApi = {
-  list: async () => await fetchTags(),
-  create: (tag: TagCreate, noteId?: number) => createTag(tag, noteId),
-  delete: (tagId: number) => deleteTag(tagId),
+  list: fetchTags,
+  create: createTag,
+  addToNote: addTagToNote,
+  delete: deleteTag,
 };

@@ -2,64 +2,65 @@ import { useEffect, useRef, useState } from "react";
 import "../../main.css";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthStore } from "@/stores/authStore";
-import { useNoteStore } from "@/stores/notesStore";
 import { useUIStore } from "@/stores/uiStore";
 import { Login } from "../Login";
 import { TiptapEditor } from "../TipTap";
 import { Sidebar } from "./components/sidebar/SideBar";
 import { StatusIndicator } from "./components/StatusIndicator";
-
-import { Tag, tagsApi } from "@/api/tags";
-import { useTagStore } from "@/stores/tagStore";
+import { useCreateTag, useTagTree } from "@/hooks/useTags";
+import { useFolderTree, useUpdateNote } from "@/hooks/useFolders";
+import { Note } from "@/api/notes";
+import { DecryptedTagNode } from "@/api/encryption";
 
 function Home() {
   const [newFolder] = useState(false);
+
+  // Local state for editing the current note
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [lastSavedNote, setLastSavedNote] = useState<{
     id: number;
     title: string;
     content: string;
   } | null>(null);
 
-  const { loadFolderTree, updateNote, setContent, selectedNote, setTitle } =
-    useNoteStore();
-
   const { encryptionKey } = useAuthStore();
-
-  const { showModal, setUpdating } = useUIStore();
-
+  const { showModal, setUpdating, selectedNote } = useUIStore();
   const newFolderRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!encryptionKey) return;
-    loadFolderTree();
-  }, []);
+  const folderTree = useFolderTree();
+  const updateNoteMutation = useUpdateNote();
 
+  // Sync editingNote with selectedNote when selection changes
+  useEffect(() => {
+    if (selectedNote) {
+      setEditingNote(selectedNote);
+      setLastSavedNote({
+        id: selectedNote.id,
+        title: selectedNote.title,
+        content: selectedNote.content,
+      });
+    } else {
+      setEditingNote(null);
+      setLastSavedNote(null);
+    }
+  }, [selectedNote?.id]);
   useEffect(() => {
     if (newFolder && newFolderRef.current) {
       newFolderRef.current.focus();
     }
   }, [newFolder]);
 
+  // Auto-save effect - watches editingNote for changes
   useEffect(() => {
-    if (!selectedNote) return;
-    if (!encryptionKey) return; // Don't try to save without encryption key
+    if (!editingNote) return;
+    if (!encryptionKey) return;
 
-    // Check if content or title actually changed (not just selecting a different note)
+    // Check if content or title actually changed
     const hasChanges =
       lastSavedNote &&
-      lastSavedNote.id === selectedNote.id &&
-      (lastSavedNote.title !== selectedNote.title ||
-        lastSavedNote.content !== selectedNote.content);
-
-    // If it's a new note selection, just update lastSavedNote without saving
-    if (!lastSavedNote || lastSavedNote.id !== selectedNote.id) {
-      setLastSavedNote({
-        id: selectedNote.id,
-        title: selectedNote.title,
-        content: selectedNote.content,
-      });
-      return;
-    }
+      lastSavedNote.id === editingNote.id &&
+      (lastSavedNote.title !== editingNote.title ||
+        lastSavedNote.content !== editingNote.content);
 
     if (!hasChanges) return;
 
@@ -67,25 +68,30 @@ function Home() {
       setUpdating(true);
       await handleUpdate();
       setLastSavedNote({
-        id: selectedNote.id,
-        title: selectedNote.title,
-        content: selectedNote.content,
+        id: editingNote.id,
+        title: editingNote.title,
+        content: editingNote.content,
       });
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [selectedNote, encryptionKey]);
+  }, [editingNote?.title, editingNote?.content, encryptionKey]);
 
   const handleUpdate = async () => {
-    if (!selectedNote) return;
+    if (!editingNote) return;
     if (!encryptionKey) {
       setUpdating(false);
       return;
     }
 
     try {
-      await updateNote(selectedNote.id);
-      console.log(selectedNote.id);
+      await updateNoteMutation.mutateAsync({
+        noteId: editingNote.id,
+        note: {
+          title: editingNote.title,
+          content: editingNote.content,
+        },
+      });
     } catch (error) {
       console.error("Failed to update note:", error);
     } finally {
@@ -95,17 +101,24 @@ function Home() {
     }
   };
 
-  const { getTagTree, tagTree } = useTagStore();
-  const getTags = () => {
-    getTagTree();
+  const setTitle = (title: string) => {
+    if (editingNote) {
+      setEditingNote({ ...editingNote, title });
+    }
   };
+
+  const setContent = (content: string) => {
+    if (editingNote) {
+      setEditingNote({ ...editingNote, content });
+    }
+  };
+
   return (
     <div className="flex bg-ctp-base h-screen text-ctp-text overflow-hidden">
       {/* Sidebar */}
       {showModal && <Modal />}
 
       <Sidebar />
-      <button onClick={getTags}>create</button>
       {/*<div className="flex flex-col">
         <input
           type="text"
@@ -125,27 +138,27 @@ function Home() {
         <input
           type="text"
           placeholder="Untitled note..."
-          value={selectedNote?.title || ""}
+          value={editingNote?.title || ""}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full px-4 py-3 text-3xl font-semibold bg-transparentfocus:outline-none focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
         />
         <div className="px-4 py-2 border-b border-ctp-surface2 flex items-center gap-2 flex-wrap">
-          {selectedNote?.tags &&
-            selectedNote.tags.map((tag) => (
+          {editingNote?.tags &&
+            editingNote.tags.map((tag) => (
               <button
                 onClick={() => null}
                 key={tag.id}
                 className="bg-ctp-surface0 px-1.5 text-sm rounded-full"
               >
-                {tag.parent_id && "..."}
+                {tag.parentId && "..."}
                 {tag.name}
               </button>
             ))}
         </div>
 
         <TiptapEditor
-          key={selectedNote?.id}
-          content={selectedNote?.content || ""}
+          key={editingNote?.id}
+          content={editingNote?.content || ""}
           onChange={setContent}
         />
       </div>
@@ -170,29 +183,45 @@ const Modal = () => {
         onClick={(e) => e.stopPropagation()}
         className="w-2/3 h-2/3 bg-ctp-base rounded-xl border-ctp-surface2 border p-5"
       >
-        {/*<Login />*/}
-        <TagSelector />
+        <Login />
+        {/*<TagSelector />*/}
       </div>
     </motion.div>
   );
 };
 
 export const TagSelector = () => {
-  const { tagTree } = useTagStore();
   const [value, setValue] = useState("");
+
+  const { data: tagTree, isLoading, error } = useTagTree();
+  const createTag = useCreateTag();
+
+  const handleEnter = async () => {
+    createTag.mutate({ name: value });
+  };
+
   return (
     <div>
-      {/*<input
+      <input
         type="text"
         value={value}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleEnter();
+        }}
         onChange={(e) => setValue(e.target.value)}
-      />*/}
+      />
       {tagTree && tagTree.map((tag) => <TagTree tag={tag} />)}
     </div>
   );
 };
 
-export const TagTree = ({ tag, depth = 0 }: { tag: Tag; depth?: number }) => {
+export const TagTree = ({
+  tag,
+  depth = 0,
+}: {
+  tag: DecryptedTagNode;
+  depth?: number;
+}) => {
   const [collapse, setCollapse] = useState(false);
 
   return (

@@ -1,62 +1,34 @@
-import axios from "axios";
 import { decryptFolderTree } from "./encryption";
 import { useAuthStore } from "../stores/authStore";
-import { Tag } from "./tags";
+import { CamelCasedPropertiesDeep } from "type-fest";
+import { components } from "@/types/api";
+import client from "./client";
 
-axios.defaults.withCredentials = true;
+export type Folder = CamelCasedPropertiesDeep<components["schemas"]["Folder"]>;
 
-const API_URL = (import.meta as any).env.PROD
-  ? "/api"
-  : "http://localhost:8000/api";
+export type FolderTreeNode = CamelCasedPropertiesDeep<
+  components["schemas"]["FolderTreeNode"]
+>;
 
-export interface Folder {
-  id: number;
-  name: string;
-  parent_id: number | null;
-  created_at: string;
-}
-
-export interface NoteRead {
-  id: number;
-  title: string;
-  content: string;
-  folder_id: number | null;
-  created_at: string;
-  updated_at: string;
-  tags: Tag[];
-}
-
-export interface FolderTreeNode {
-  id: number;
-  name: string;
-  notes: NoteRead[];
-  children: FolderTreeNode[];
-}
-
-export interface FolderTreeResponse {
-  folders: FolderTreeNode[];
-  orphaned_notes: NoteRead[];
-}
-
-export interface FolderCreate {
-  name: string;
-  parent_id: number | null;
-}
-
-export interface FolderUpdate {
-  name?: string;
-  parent_id?: number | null;
-}
+export type FolderTreeResponse = CamelCasedPropertiesDeep<
+  components["schemas"]["FolderTreeResponse"]
+>;
+export type FolderCreate = CamelCasedPropertiesDeep<
+  components["schemas"]["FolderCreate"]
+>;
+export type FolderUpdate = CamelCasedPropertiesDeep<
+  components["schemas"]["FolderUpdate"]
+>;
 
 const getFolderTree = async () => {
   const encryptionKey = useAuthStore.getState().encryptionKey;
   if (!encryptionKey) throw new Error("Not authenticated");
 
-  const { data } = await axios.get<FolderTreeResponse>(
-    `${API_URL}/folders/tree`,
-  );
+  const { data, error } = await client.GET("/api/folders/tree", {});
 
-  const decryptedFolderTree = await decryptFolderTree(data, encryptionKey);
+  const newData = data as unknown as FolderTreeResponse;
+
+  const decryptedFolderTree = await decryptFolderTree(newData, encryptionKey);
 
   return decryptedFolderTree;
 };
@@ -64,7 +36,10 @@ const getFolderTree = async () => {
 const updateFolder = async (id: number, folder: FolderUpdate) => {
   console.log(`Updating folder ${id} with:`, folder);
   try {
-    const response = await axios.patch(`${API_URL}/folders/${id}`, folder);
+    const response = await client.PATCH("/api/folders/{folder_id}", {
+      params: { path: { folder_id: id } },
+      body: folder,
+    });
     console.log(`Folder ${id} update response:`, response.data);
     return response;
   } catch (error) {
@@ -75,10 +50,13 @@ const updateFolder = async (id: number, folder: FolderUpdate) => {
 
 export const folderApi = {
   tree: () => getFolderTree(),
-  list: () => axios.get<Folder[]>(`${API_URL}/folders`),
+  list: () => client.GET("/api/folders/", {}),
   create: (folder: FolderCreate) =>
-    axios.post<Folder>(`${API_URL}/folders/`, folder),
-  delete: (id: number) => axios.delete(`${API_URL}/folders/${id}`),
+    client.POST("/api/folders/", { body: folder }),
+  delete: (id: number) =>
+    client.DELETE("/api/folders/{folder_id}", {
+      params: { path: { folder_id: id } },
+    }),
   update: (id: number, updateData: FolderUpdate) =>
     updateFolder(id, updateData),
 };
