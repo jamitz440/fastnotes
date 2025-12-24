@@ -24,14 +24,14 @@ export const StatusIndicator = () => {
       ) : updating ? (
         <>
           <SpinnerIcon className="animate-spin h-4 w-4 [&_.fa-primary]:fill-ctp-blue [&_.fa-secondary]:fill-ctp-sapphire" />
-          <span className="text-sm text-ctp-subtext0 font-medium">
+          {/*<span className="text-sm text-ctp-subtext0 font-medium">
             Saving...
-          </span>
+          </span>*/}
         </>
       ) : (
         <>
           <CheckIcon className="h-4 w-4 [&_.fa-primary]:fill-ctp-green [&_.fa-secondary]:fill-ctp-teal" />
-          <span className="text-sm text-ctp-subtext0 font-medium">Saved</span>
+          {/*<span className="text-sm text-ctp-subtext0 font-medium">Saved</span>*/}
         </>
       )}
     </div>

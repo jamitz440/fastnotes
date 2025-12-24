@@ -79,7 +79,7 @@ export const TiptapEditor = ({
   }
 
   return (
-    <div className="tiptap-editor pt-0">
+    <div className="tiptap-editor pt-0!">
       {/* Toolbar */}
       {/*<div className="editor-toolbar">
         <div className="toolbar-group">
@@ -191,7 +191,7 @@ export const TiptapEditor = ({
       {/* Editor content */}
       <EditorContent
         editor={editor}
-        className="editor-content h-min-screen p-4!"
+        className="editor-content h-min-screen p-4! pt-0!"
       />
     </div>
   );

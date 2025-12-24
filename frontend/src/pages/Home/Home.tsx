@@ -13,6 +13,8 @@ import { Note, NoteRead } from "@/api/notes";
 import { DecryptedTagNode } from "@/api/encryption";
 // @ts-ignore
 import XmarkIcon from "@/assets/fontawesome/svg/xmark.svg?react";
+// @ts-ignore
+import PlusIcon from "@/assets/fontawesome/svg/plus.svg?react";
 
 function Home() {
   const [newFolder] = useState(false);
@@ -129,11 +131,14 @@ function Home() {
         <div className="h-full lg:w-3xl w-full">
           <input
             type="text"
+            id="noteTitle"
+            name=""
             placeholder="Untitled note..."
             value={editingNote?.title || ""}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full p-4 pb-0 text-3xl font-semibold bg-transparent focus:outline-none border-transparent focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
           />
+          <TagSelector />
           {/*<div className="px-4 py-2  border-ctp-surface2 flex items-center gap-2 flex-wrap">
             {editingNote?.tags &&
               editingNote.tags.map((tag) => (
@@ -197,25 +202,99 @@ const Modal = () => {
 
 export const TagSelector = () => {
   const [value, setValue] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: tagTree, isLoading, error } = useTagTree();
   const createTag = useCreateTag();
+  const [expanded, setExpanded] = useState(false);
+
+  // Close when clicking outside the entire component
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        handleClose();
+      }
+    };
+
+    if (expanded) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [expanded]);
+
+  // Focus input when expanded
+  useEffect(() => {
+    if (expanded && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [expanded]);
 
   const handleEnter = async () => {
     createTag.mutate({ name: value });
   };
+  function handleClose() {
+    // If there’s a value, submit it; otherwise just collapse
+    if (value.trim()) {
+      // onsubmit?.(value.trim());
+    }
+    setValue("");
+    setExpanded(false);
+  }
+
+  function handleKey(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleClose();
+    } else if (e.key === "Escape") {
+      // Abort without submitting
+      setValue("");
+      setExpanded(false);
+    }
+  }
 
   return (
-    <div>
-      <input
-        type="text"
-        value={value}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") handleEnter();
-        }}
-        onChange={(e) => setValue(e.target.value)}
-      />
-      {tagTree && tagTree.map((tag) => <TagTree tag={tag} />)}
+    <div className="relative ml-4" ref={containerRef}>
+      <div className="inline-flex bg-ctp-surface0 rounded-full px-1 py-0.5 items-center">
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className={`text-xs bg-transparent flex items-center justify-center
+            focus:outline-none transition-all duration-200 ease-out whitespace-nowrap text-ctp-subtext0
+            ${expanded ? "opacity-0 w-0 px-0 pointer-events-none overflow-hidden" : "opacity-100 px-0.5"}
+          `}
+        >
+          <PlusIcon className="w-3 h-3 mr-1 fill-ctp-subtext0" />
+          {"Add"}
+        </button>
+
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder={"Type here…"}
+          className={`text-xs z-30
+            bg-transparent px-1.5
+            focus:outline-none focus:ring-0
+            transition-all duration-200 ease-out
+            ${expanded ? "w-32 opacity-100" : "w-0 opacity-0 pointer-events-none"}
+          `}
+        />
+      </div>
+
+      <div className="absolute bg-ctp-base z-10">
+        {tagTree &&
+          tagTree
+            .filter((tag) =>
+              value == "" ? false : (tag.name + tag.parentPath).includes(value),
+            )
+            .map((tag) => <TagTree tag={tag} />)}
+      </div>
     </div>
   );
 };
@@ -230,7 +309,10 @@ export const TagTree = ({
   const [collapse, setCollapse] = useState(false);
 
   return (
-    <div key={tag.id} className="flex flex-col relative">
+    <div
+      key={tag.id}
+      className="flex flex-col relative bg-ctp-surface0 pt-3 -translate-y-3 w-[136px]"
+    >
       <div onClick={() => setCollapse(!collapse)}>{tag.name}</div>
       <AnimatePresence>
         {collapse && (
