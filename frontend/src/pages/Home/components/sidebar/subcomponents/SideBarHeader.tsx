@@ -14,7 +14,7 @@ export const SidebarHeader = ({
 }: {
   setNewFolder: React.Dispatch<SetStateAction<boolean>>;
 }) => {
-  const { setSideBarView, sideBarView, selectedFolder } = useUIStore();
+  const { selectedFolder } = useUIStore();
   const createNote = useCreateNote();
   const handleCreate = async () => {
     createNote.mutate({
@@ -32,15 +32,6 @@ export const SidebarHeader = ({
           title="New folder"
         >
           <FolderPlusIcon className="w-5 h-5 group-hover:fill-ctp-base transition-all duration-200 fill-ctp-mauve" />
-        </button>
-        <button
-          onClick={() =>
-            setSideBarView(sideBarView == "tags" ? "folders" : "tags")
-          }
-          className={`${sideBarView === "tags" ? "bg-ctp-mauve/20" : ""} hover:bg-ctp-mauve active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md`}
-          title="Tags"
-        >
-          <TagsIcon className="w-5 h-5 group-hover:fill-ctp-base transition-all duration-200 fill-ctp-mauve" />
         </button>
         <button
           onClick={handleCreate}

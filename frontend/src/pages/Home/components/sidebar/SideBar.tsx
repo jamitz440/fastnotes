@@ -20,7 +20,6 @@ import { FolderTree } from "./subcomponents/FolderTree.tsx";
 import { SidebarHeader } from "./subcomponents/SideBarHeader.tsx";
 import { useAuthStore } from "@/stores/authStore.ts";
 import { useUIStore } from "@/stores/uiStore.ts";
-import { TagSelector } from "../../Home.tsx";
 import {
   useCreateFolder,
   useFolderTree,
@@ -42,8 +41,7 @@ export const Sidebar = () => {
 
   const { encryptionKey } = useAuthStore();
 
-  const { setSideBarResize, sideBarResize, sideBarView, setSideBarView } =
-    useUIStore();
+  const { setSideBarResize, sideBarResize } = useUIStore();
   useEffect(() => {
     if (newFolder && newFolderRef.current) {
       newFolderRef.current.focus();
@@ -174,95 +172,85 @@ export const Sidebar = () => {
         >
           <SidebarHeader setNewFolder={setNewFolder} />
           <div className="flex-1 overflow-y-auto bg-ctp-mantle border-r border-ctp-surface2">
-            {sideBarView == "folders" ? (
-              <>
-                <div
-                  className="w-full p-4 sm:block hidden"
-                  onDragOver={(e) => e.preventDefault()}
-                  onTouchMove={(e) => e.preventDefault()}
-                >
-                  {/* New folder input */}
-                  {newFolder && (
-                    <div className="mb-2">
-                      <input
-                        onBlur={() => setNewFolder(false)}
-                        onChange={(e) => setNewFolderText(e.target.value)}
-                        value={newFolderText}
-                        type="text"
-                        placeholder="Folder name..."
-                        className="standard-input"
-                        ref={newFolderRef}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            handleCreateFolder();
-                          }
-                          if (e.key === "Escape") {
-                            setNewFolder(false);
-                          }
-                        }}
-                      />
-                    </div>
-                  )}
+            <>
+              <div
+                className="w-full p-4 sm:block hidden"
+                onDragOver={(e) => e.preventDefault()}
+                onTouchMove={(e) => e.preventDefault()}
+              >
+                {/* New folder input */}
+                {newFolder && (
+                  <div className="mb-2">
+                    <input
+                      onBlur={() => setNewFolder(false)}
+                      onChange={(e) => setNewFolderText(e.target.value)}
+                      value={newFolderText}
+                      type="text"
+                      placeholder="Folder name..."
+                      className="standard-input"
+                      ref={newFolderRef}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleCreateFolder();
+                        }
+                        if (e.key === "Escape") {
+                          setNewFolder(false);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
 
-                  {/* Loading state */}
-                  {isLoading && (
-                    <div className="flex items-center justify-center py-8 text-ctp-subtext0">
-                      <div className="text-sm">Loading folders...</div>
-                    </div>
-                  )}
+                {/* Loading state */}
+                {isLoading && (
+                  <div className="flex items-center justify-center py-8 text-ctp-subtext0">
+                    <div className="text-sm">Loading folders...</div>
+                  </div>
+                )}
 
-                  {/* Error state */}
-                  {error && (
-                    <div className="flex items-center justify-center py-8 text-ctp-red">
-                      <div className="text-sm">Failed to load folders</div>
-                    </div>
-                  )}
+                {/* Error state */}
+                {error && (
+                  <div className="flex items-center justify-center py-8 text-ctp-red">
+                    <div className="text-sm">Failed to load folders</div>
+                  </div>
+                )}
 
-                  {/* Folder tree */}
-                  {!isLoading && !error && (
-                    <>
-                      <div className="flex flex-col gap-1">
-                        {folderTree?.folders.map((folder) => (
-                          <FolderTree
-                            key={folder.id}
-                            folder={folder}
-                            depth={0}
-                          />
-                        ))}
-                      </div>
-
-                      {/* Orphaned notes */}
-                      {folderTree?.orphanedNotes &&
-                        folderTree.orphanedNotes.length > 0 && (
-                          <div className="mt-4 flex flex-col gap-1">
-                            {folderTree.orphanedNotes.map((note) => (
-                              <DraggableNote key={note.id} note={note} />
-                            ))}
-                          </div>
-                        )}
-                    </>
-                  )}
-                </div>
-
-                <DragOverlay>
-                  {activeItem?.type === "note" && (
-                    <div className="bg-ctp-surface0 rounded-md px-2 py-1 shadow-lg border border-ctp-mauve">
-                      {activeItem.data.title}
+                {/* Folder tree */}
+                {!isLoading && !error && (
+                  <>
+                    <div className="flex flex-col gap-1">
+                      {folderTree?.folders.map((folder) => (
+                        <FolderTree key={folder.id} folder={folder} depth={0} />
+                      ))}
                     </div>
-                  )}
-                  {activeItem?.type === "folder" && (
-                    <div className="bg-ctp-surface0 rounded-md px-1 py-0.5 shadow-lg flex items-center gap-1 text-sm">
-                      <FolderIcon className="w-3 h-3 fill-ctp-mauve mr-1" />
-                      {activeItem.data.name}
-                    </div>
-                  )}
-                </DragOverlay>
-              </>
-            ) : (
-              <div className="w-full p-4 sm:block hidden">
-                <TagSelector />
+
+                    {/* Orphaned notes */}
+                    {folderTree?.orphanedNotes &&
+                      folderTree.orphanedNotes.length > 0 && (
+                        <div className="mt-4 flex flex-col gap-1">
+                          {folderTree.orphanedNotes.map((note) => (
+                            <DraggableNote key={note.id} note={note} />
+                          ))}
+                        </div>
+                      )}
+                  </>
+                )}
               </div>
-            )}
+
+              <DragOverlay>
+                {activeItem?.type === "note" && (
+                  <div className="bg-ctp-surface0 rounded-md px-2 py-1 shadow-lg border border-ctp-mauve">
+                    {activeItem.data.title}
+                  </div>
+                )}
+                {activeItem?.type === "folder" && (
+                  <div className="bg-ctp-surface0 rounded-md px-1 py-0.5 shadow-lg flex items-center gap-1 text-sm">
+                    <FolderIcon className="w-3 h-3 fill-ctp-mauve mr-1" />
+                    {activeItem.data.name}
+                  </div>
+                )}
+              </DragOverlay>
+            </>
           </div>
         </div>
       </div>
