@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Tag, TagCreate, tagsApi } from "@/api/tags";
+import { Tag, TagCreate, TagRead, tagsApi } from "@/api/tags";
 import { useAuthStore } from "@/stores/authStore";
 import { DecryptedTagNode } from "@/api/encryption";
 
@@ -43,6 +43,20 @@ export const useCreateTag = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags", "tree"] });
+    },
+  });
+};
+
+export const useAddTagToNote = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ tagId, noteId }: { tagId: number; noteId: number }) =>
+      tagsApi.addToNote(tagId, noteId),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tags", "tree"] });
+      queryClient.invalidateQueries({ queryKey: ["folders", "tree"] });
     },
   });
 };

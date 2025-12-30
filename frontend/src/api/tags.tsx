@@ -49,7 +49,6 @@ const createTag = async (tag: TagCreate): Promise<TagTreeNode> => {
   });
 
   if (error) throw new Error("Failed to create tag");
-  console.log(data);
   return data as unknown as TagTreeNode;
 };
 

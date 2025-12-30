@@ -7,7 +7,7 @@ import { Login } from "../Login";
 import { TiptapEditor } from "../TipTap";
 import { Sidebar } from "./components/sidebar/SideBar";
 import { StatusIndicator } from "./components/StatusIndicator";
-import { useCreateTag, useTagTree } from "@/hooks/useTags";
+import { useAddTagToNote, useCreateTag, useTagTree } from "@/hooks/useTags";
 import { useFolderTree, useUpdateNote } from "@/hooks/useFolders";
 import { Note, NoteRead } from "@/api/notes";
 import { DecryptedTagNode } from "@/api/encryption";
@@ -138,8 +138,11 @@ function Home() {
             onChange={(e) => setTitle(e.target.value)}
             className="w-full p-4 pb-0 text-3xl font-semibold bg-transparent focus:outline-none border-transparent focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
           />
-          <TagSelector />
-          {/*<div className="px-4 py-2  border-ctp-surface2 flex items-center gap-2 flex-wrap">
+          <TagSelector
+            editingNote={editingNote}
+            setEditingNote={setEditingNote}
+          />
+          <div className="px-4 py-2  border-ctp-surface2 flex items-center gap-2 flex-wrap">
             {editingNote?.tags &&
               editingNote.tags.map((tag) => (
                 <button
@@ -151,7 +154,7 @@ function Home() {
                   {tag.name}
                 </button>
               ))}
-          </div>*/}
+          </div>
 
           <TiptapEditor
             key={editingNote?.id}
@@ -200,14 +203,41 @@ const Modal = () => {
   );
 };
 
-export const TagSelector = () => {
+export const TagSelector = ({
+  editingNote,
+  setEditingNote,
+}: {
+  editingNote: NoteRead | null;
+  setEditingNote: (note: NoteRead | null) => void;
+}) => {
   const [value, setValue] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: tagTree, isLoading, error } = useTagTree();
   const createTag = useCreateTag();
+  const addTagToNote = useAddTagToNote();
   const [expanded, setExpanded] = useState(false);
+
+  // Parse path from input (using > as separator)
+  const parsedPath = value.includes(">")
+    ? value
+        .split(">")
+        .map((part) => part.trim())
+        .filter(Boolean)
+    : null;
+
+  // Filter existing tags based on search
+  const filteredTags = tagTree
+    ? tagTree.filter((tag) => {
+        if (value === "") return false;
+        // Don't show filtered tags if user is typing a path
+        if (parsedPath) return false;
+        return (tag.name + tag.parentPath)
+          .toLowerCase()
+          .includes(value.toLowerCase());
+      })
+    : [];
 
   // Close when clicking outside the entire component
   useEffect(() => {
@@ -234,13 +264,63 @@ export const TagSelector = () => {
     }
   }, [expanded]);
 
-  const handleEnter = async () => {
-    createTag.mutate({ name: value });
+  const handleEnter = () => {
+    createTag.mutate(
+      { name: value },
+      {
+        onSuccess: (createdTag) => {
+          if (editingNote && createdTag.id) {
+            addTagToNote.mutate(
+              {
+                tagId: createdTag.id,
+                noteId: editingNote.id,
+              },
+              {
+                onSuccess: () => {
+                  setEditingNote({
+                    ...editingNote,
+                    tags: [
+                      ...(editingNote.tags || []),
+                      { ...createdTag, name: value },
+                    ],
+                  });
+                },
+              },
+            );
+          }
+        },
+      },
+    );
   };
+
+  const handleSelectExistingTag = (tag: DecryptedTagNode) => {
+    if (editingNote && tag.id) {
+      addTagToNote.mutate(
+        {
+          tagId: tag.id,
+          noteId: editingNote.id,
+        },
+        {
+          onSuccess: () => {
+            setEditingNote({
+              ...editingNote,
+              tags: [
+                ...(editingNote.tags || []),
+                { id: tag.id, name: tag.name, parentId: tag.parentId },
+              ],
+            });
+            setValue("");
+            setExpanded(false);
+          },
+        },
+      );
+    }
+  };
+
   function handleClose() {
-    // If there’s a value, submit it; otherwise just collapse
+    // If there's a value, submit it; otherwise just collapse
     if (value.trim()) {
-      // onsubmit?.(value.trim());
+      handleEnter();
     }
     setValue("");
     setExpanded(false);
@@ -287,14 +367,102 @@ export const TagSelector = () => {
         />
       </div>
 
-      <div className="absolute bg-ctp-base z-10">
-        {tagTree &&
-          tagTree
-            .filter((tag) =>
-              value == "" ? false : (tag.name + tag.parentPath).includes(value),
-            )
-            .map((tag) => <TagTree tag={tag} />)}
-      </div>
+      {/* Dropdown */}
+      {expanded && value && (
+        <div className="absolute top-full left-0 mt-1 bg-ctp-surface0 rounded-lg shadow-lg border border-ctp-surface2 overflow-hidden min-w-[200px] max-w-[300px] z-20">
+          {/* Show hierarchical preview if path is being typed */}
+          {parsedPath && parsedPath.length > 0 && (
+            <div className="p-3 border-b border-ctp-surface2">
+              <div className="text-xs text-ctp-overlay1 mb-2">
+                Create tag hierarchy:
+              </div>
+              <div className="flex flex-col gap-1">
+                {parsedPath.map((part, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center text-xs text-ctp-text"
+                    style={{ paddingLeft: `${index * 12}px` }}
+                  >
+                    {index > 0 && (
+                      <span className="text-ctp-overlay0 mr-2">└─</span>
+                    )}
+                    <span className="bg-ctp-surface1 px-2 py-0.5 rounded">
+                      {part}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="text-xs text-ctp-overlay0 mt-2">
+                Press Enter to create
+              </div>
+            </div>
+          )}
+
+          {/* Show filtered existing tags */}
+          {!parsedPath && filteredTags.length > 0 && (
+            <div className="max-h-[200px] overflow-y-auto">
+              {filteredTags.map((tag) => (
+                <TagTreeClickable
+                  key={tag.id}
+                  tag={tag}
+                  onSelect={handleSelectExistingTag}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Show "create new" option for simple tags */}
+          {!parsedPath && filteredTags.length === 0 && (
+            <div className="p-2 text-xs text-ctp-overlay1">
+              Press Enter to create "{value}"
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Clickable version of TagTree for selection
+export const TagTreeClickable = ({
+  tag,
+  depth = 0,
+  onSelect,
+}: {
+  tag: DecryptedTagNode;
+  depth?: number;
+  onSelect: (tag: DecryptedTagNode) => void;
+}) => {
+  const [collapse, setCollapse] = useState(false);
+
+  return (
+    <div key={tag.id} className="flex flex-col">
+      <button
+        onClick={() => onSelect(tag)}
+        className="flex items-center px-3 py-2 hover:bg-ctp-surface1 transition-colors text-left text-xs"
+        style={{ paddingLeft: `${12 + depth * 16}px` }}
+      >
+        <span className="text-ctp-text">{tag.name}</span>
+        {tag.parentPath && (
+          <span className="ml-2 text-ctp-overlay0 text-[10px]">
+            {tag.parentPath}
+          </span>
+        )}
+      </button>
+
+      {/* Show children */}
+      {tag.children && tag.children.length > 0 && (
+        <div>
+          {tag.children.map((child) => (
+            <TagTreeClickable
+              key={child.id}
+              tag={child}
+              depth={depth + 1}
+              onSelect={onSelect}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -3,3 +3,4 @@ frontend/src/assets/fontawesome/svg/*
 frontend/src/assets/fontawesome/svg/0.svg
 *.db
 .zed/settings.json
+**.pyc
