@@ -24,7 +24,7 @@ const getFolderTree = async () => {
   const encryptionKey = useAuthStore.getState().encryptionKey;
   if (!encryptionKey) throw new Error("Not authenticated");
 
-  const { data, error } = await client.GET("/api/folders/tree", {});
+  const { data, error } = await client.GET("/folders/tree", {});
 
   const newData = data as unknown as FolderTreeResponse;
 
@@ -36,7 +36,7 @@ const getFolderTree = async () => {
 const updateFolder = async (id: number, folder: FolderUpdate) => {
   console.log(`Updating folder ${id} with:`, folder);
   try {
-    const response = await client.PATCH("/api/folders/{folder_id}", {
+    const response = await client.PATCH("/folders/{folder_id}", {
       params: { path: { folder_id: id } },
       body: folder,
     });
@@ -50,11 +50,10 @@ const updateFolder = async (id: number, folder: FolderUpdate) => {
 
 export const folderApi = {
   tree: () => getFolderTree(),
-  list: () => client.GET("/api/folders/", {}),
-  create: (folder: FolderCreate) =>
-    client.POST("/api/folders/", { body: folder }),
+  list: () => client.GET("/folders/", {}),
+  create: (folder: FolderCreate) => client.POST("/folders/", { body: folder }),
   delete: (id: number) =>
-    client.DELETE("/api/folders/{folder_id}", {
+    client.DELETE("/folders/{folder_id}", {
       params: { path: { folder_id: id } },
     }),
   update: (id: number, updateData: FolderUpdate) =>

@@ -26,13 +26,13 @@ const createNote = async (note: NoteCreate) => {
   };
 
   console.log(encryptedNote);
-  return client.POST(`/api/notes/`, { body: encryptedNote });
+  return client.POST(`/notes/`, { body: encryptedNote });
 };
 const fetchNotes = async () => {
   const encryptionKey = useAuthStore.getState().encryptionKey;
   if (!encryptionKey) throw new Error("Not authenticated");
 
-  const { data, error } = await client.GET(`/api/notes/`);
+  const { data, error } = await client.GET(`/notes/`);
 
   if (error) {
     throw new Error(error);
@@ -74,7 +74,7 @@ const updateNote = async (id: number, note: Partial<NoteRead>) => {
     encryptedNote.folderId = note.folderId;
   }
 
-  const { data, error } = await client.PATCH(`/api/notes/{note_id}`, {
+  const { data, error } = await client.PATCH(`/notes/{note_id}`, {
     body: encryptedNote,
     params: {
       path: {
@@ -94,7 +94,7 @@ const updateNote = async (id: number, note: Partial<NoteRead>) => {
 export const notesApi = {
   list: () => fetchNotes(),
   get: (id: number) =>
-    client.GET(`/api/notes/{note_id}`, {
+    client.GET(`/notes/{note_id}`, {
       params: {
         path: {
           note_id: id,
@@ -104,7 +104,7 @@ export const notesApi = {
   create: (note: NoteCreate) => createNote(note),
   update: (id: number, note: Partial<NoteRead>) => updateNote(id, note),
   delete: (id: number) =>
-    client.DELETE(`/api/notes/{note_id}`, {
+    client.DELETE(`/notes/{note_id}`, {
       params: {
         path: {
           note_id: id,
