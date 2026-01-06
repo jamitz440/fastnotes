@@ -3,14 +3,9 @@ services:
     build:
       context: ./backend
     container_name: fastnotes-api
-    # NO ports section at all - Coolify handles this
 
   ui:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: https://notesapi.fitzythe.dev
-    container_name: fastnotes-ui
-    # NO ports section at all
-    depends_on:
-      - api
+        VITE_API_URL: /api

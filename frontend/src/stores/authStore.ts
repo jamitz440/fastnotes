@@ -33,9 +33,9 @@ interface AuthState {
   clearAll: () => void;
 }
 
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? "/api" : "http://localhost:8000/");
+const API_URL = import.meta.env.PROD
+  ? "/api" // ← Same domain, different path
+  : "http://localhost:8000/api";
 
 export const useAuthStore = create<AuthState>()(
   persist(
