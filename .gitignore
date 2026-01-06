@@ -4,3 +4,4 @@ frontend/src/assets/fontawesome/svg/0.svg
 *.db
 .zed/settings.json
 **.pyc
+!src/assets/fontawesome/svg/xmark.svg
