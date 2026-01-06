@@ -3,7 +3,9 @@ import createClient from "openapi-fetch";
 import { camelizeKeys, decamelizeKeys } from "humps";
 import type { paths } from "@/types/api";
 
-const API_URL = import.meta.env.PROD ? "/api" : "http://localhost:8000/";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? "/api" : "http://localhost:8000/");
 
 // Create the base client with full type safety
 export const client = createClient<paths>({
