@@ -4,8 +4,8 @@ services:
       context: ./backend
     container_name: fastnotes-api
 
-  ui:
-    build:
-      context: ./frontend
-      args:
-        VITE_API_URL: /api
+  # ui:
+  #   build:
+  #     context: ./frontend
+  #     args:
+  #       VITE_API_URL: /api
