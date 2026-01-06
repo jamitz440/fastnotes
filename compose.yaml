@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app # live‑code sync for reload
+    # env_file: .env # optional, keep secrets out of repo
+    # depends_on:
+    #   - db # if you have a DB service
+
+  ui:
+    build:
+      context: ./frontend
+      target: builder # use the builder stage for dev
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - api
+
+  # Example DB (Postgres) – optional
+  # db:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: demo
+  #     POSTGRES_PASSWORD: demo
+  #     POSTGRES_DB: demo
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+
+# volumes:
+#   pgdata:
