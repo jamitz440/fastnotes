@@ -4,8 +4,7 @@ services:
       context: ./backend
     container_name: fastnotes-api
     ports:
-      - "8000:8000" # ← Add this
-
+      - "8000:8000"
 
   # ui:
   #   build:
