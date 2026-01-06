@@ -13,6 +13,6 @@ services:
         VITE_API_URL: https://notesapi.fitzythe.dev # Pass as build arg
     container_name: fastnotes-ui
     ports:
-      - "80:80"
+      - "5432:5432"
     depends_on:
       - api
