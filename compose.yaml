@@ -5,16 +5,14 @@ services:
     container_name: fastnotes-api
     ports:
       - "8000:8000"
-    # No volume – immutable image
-    # env_file: .env   # set secrets in Coolify UI
 
   ui:
     build:
-      context: ./frontend # defaults to Dockerfile (production)
+      context: ./frontend
+      args:
+        VITE_API_URL: https://notesapi.fitzythe.dev # Pass as build arg
     container_name: fastnotes-ui
-    environment:
-      - VITE_API_URL=http://api:8000
     ports:
-      - "80:80" # Nginx serves on 80
+      - "80:80"
     depends_on:
       - api
