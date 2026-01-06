@@ -18,6 +18,10 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY app ./app
 
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Create data directory for SQLite and other persistent data
 RUN mkdir -p /app/data
 
@@ -31,5 +35,5 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=3 \
 
 EXPOSE 8000
 
-# Run with production settings
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# Run with startup script
+CMD ["/app/start.sh"]
