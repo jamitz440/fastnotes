@@ -33,8 +33,9 @@ services:
         # Frontend will use /api path (proxied by nginx)
         VITE_API_URL: ${VITE_API_URL:-/api}
     container_name: fastnotes-ui
-    ports:
-      - "80:80"
+    # Coolify manages ports via its proxy - expose instead of publish
+    expose:
+      - "80"
     depends_on:
       - api
     restart: unless-stopped
