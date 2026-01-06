@@ -172,3 +172,9 @@
     margin-top: 0 !important;
     margin-bottom: 0 !important;
 }
+
+.note-link {
+    @apply text-ctp-pink-500;
+    @apply underline;
+    @apply cursor-pointer;
+}

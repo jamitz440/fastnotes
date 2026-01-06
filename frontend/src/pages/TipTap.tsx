@@ -22,6 +22,7 @@ import SquareCheckIcon from "../assets/fontawesome/svg/square-check.svg?react";
 import CodeBracketIcon from "../assets/fontawesome/svg/code-simple.svg?react";
 // @ts-ignore
 import QuoteLeftIcon from "../assets/fontawesome/svg/quote-left.svg?react";
+import { NoteLink } from "@/extensions/NoteLink";
 
 interface TiptapEditorProps {
   content: string;
@@ -37,6 +38,7 @@ export const TiptapEditor = ({
   const editor = useEditor({
     extensions: [
       ListKit,
+      NoteLink,
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
@@ -189,6 +191,19 @@ export const TiptapEditor = ({
       </div>*/}
 
       {/* Editor content */}
+      <button
+        onClick={() => {
+          editor
+            ?.chain()
+            .focus()
+            .setMark("noteLink", { noteId: 123, title: "Test Note" })
+            .insertContent("Test Note")
+            .run();
+        }}
+        className="bg-ctp-blue text-ctp-base px-4 py-2 rounded"
+      >
+        Insert Test Link
+      </button>
       <EditorContent
         editor={editor}
         className="editor-content h-min-screen p-4! pt-0!"
