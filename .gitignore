@@ -1,5 +1,5 @@
 node_modules
-frontend/src/assets/fontawesome/svg/*
+*.svg
 frontend/src/assets/fontawesome/svg/0.svg
 *.db
 .zed/settings.json
