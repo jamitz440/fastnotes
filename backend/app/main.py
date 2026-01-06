@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type:ignore
 
@@ -6,13 +8,11 @@ from app.routes import auth, folders, notes, tags
 
 app = FastAPI(title="Notes API")
 
-# CORS - adjust origins for production
+# CORS - configure via environment variable
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:80").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:80",
-        "https://notes.fitzythe.dev",
-    ],  # Vite dev server
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,3 +33,9 @@ app.include_router(tags.router, prefix="/api")
 @app.get("/")
 def root():
     return {"message": "Notes API"}
+
+
+@app.get("/health")
+def health():
+    """Health check endpoint for Docker and Coolify"""
+    return {"status": "healthy"}

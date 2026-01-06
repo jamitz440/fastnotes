@@ -25,8 +25,8 @@ RUN mkdir -p /app/data
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+# Add healthcheck with longer start period for initialization
+HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
 EXPOSE 8000
