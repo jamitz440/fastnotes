@@ -3,9 +3,41 @@ services:
     build:
       context: ./backend
     container_name: fastnotes-api
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/notes.db}
+      - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    # Internal only - accessed via nginx proxy
+    expose:
+      - "8000"
+    volumes:
+      - api_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # ui:
-  #   build:
-  #     context: ./frontend
-  #     args:
-  #       VITE_API_URL: /api
+  ui:
+    build:
+      context: ./frontend
+      args:
+        # Frontend will use /api path (proxied by nginx)
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    container_name: fastnotes-ui
+    ports:
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  api_data:

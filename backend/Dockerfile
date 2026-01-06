@@ -1,17 +1,35 @@
-FROM python:3.11-slim
-
+# ---- Builder stage ----
+FROM python:3.12-slim AS builder
 WORKDIR /app
 
-
+# Install dependencies
 COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
+# ---- Runtime stage ----
+FROM python:3.12-slim
+WORKDIR /app
 
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy application code
+COPY app ./app
 
+# Create data directory for SQLite and other persistent data
+RUN mkdir -p /app/data
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-COPY ./app ./app
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
+EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--port", "8000"]
+# Run with production settings
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

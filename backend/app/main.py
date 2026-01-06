@@ -10,7 +10,7 @@ app = FastAPI(title="Notes API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
+        "http://localhost:80",
         "https://notes.fitzythe.dev",
     ],  # Vite dev server
     allow_credentials=True,
