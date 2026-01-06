@@ -1,14 +1,11 @@
-# ==== frontend/Dockerfile (production) ====
-
 # ---------- Builder ----------
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci                     # clean install, respects lockfile
-
+RUN npm ci                     # install deps (no dev‑dependencies unless you need them)
 COPY . .
-RUN npm run build              # Vite outputs to ./dist
+RUN npm run build              # Vite creates ./dist
 
 # ---------- Runtime ----------
 FROM nginx:stable-alpine AS runtime

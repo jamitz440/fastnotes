@@ -1,40 +1,20 @@
-version: "3.9"
-
 services:
   api:
     build:
       context: ./backend
+    container_name: fastnotes-api
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app # live‑code sync for reload
-    # env_file: .env # optional, keep secrets out of repo
-    # depends_on:
-    #   - db # if you have a DB service
+    # No volume – immutable image
+    # env_file: .env   # set secrets in Coolify UI
 
   ui:
     build:
-      context: ./frontend
-      target: builder # use the builder stage for dev
-    command: npm run build -- --host 0.0.0.0 --port 5173
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
+      context: ./frontend # defaults to Dockerfile (production)
+    container_name: fastnotes-ui
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://api:8000
+    ports:
+      - "80:80" # Nginx serves on 80
     depends_on:
       - api
-
-  # Example DB (Postgres) – optional
-  # db:
-  #   image: postgres:16-alpine
-  #   environment:
-  #     POSTGRES_USER: demo
-  #     POSTGRES_PASSWORD: demo
-  #     POSTGRES_DB: demo
-  #   volumes:
-  #     - pgdata:/var/lib/postgresql/data
-
-# volumes:
-#   pgdata:
