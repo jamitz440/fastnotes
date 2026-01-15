@@ -1,7 +1,9 @@
 import os
 
+from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine  # type: ignore
 
+load_dotenv()
 # Get database URL from environment, with proper fallback
 DATABASE_URL = os.getenv("DATABASE_URL")
 

@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  ChangeEventHandler,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import "../../main.css";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthStore } from "@/stores/authStore";
@@ -26,7 +32,7 @@ function Home() {
   } | null>(null);
 
   const { encryptionKey } = useAuthStore();
-  const { showModal, setUpdating, selectedNote } = useUIStore();
+  const { showModal, setUpdating, selectedNote, editorView } = useUIStore();
   const newFolderRef = useRef<HTMLInputElement>(null);
 
   const updateNoteMutation = useUpdateNote();
@@ -115,33 +121,60 @@ function Home() {
     }
   };
 
+  const setUnparsedContent = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    if (editingNote) {
+      setEditingNote({ ...editingNote, content: event.target.value });
+    }
+  };
+
   return (
-    <div className="flex bg-ctp-base h-screen text-ctp-text overflow-hidden">
+    <div className="flex bg-base h-screen text-text overflow-hidden">
       {/* Sidebar */}
       <AnimatePresence>{showModal && <Modal />}</AnimatePresence>
 
       <Sidebar />
 
       {/* Main editor area */}
-      <div className="flex flex-col w-full h-screen overflow-y-auto items-center justify-center">
-        {/*<Editor />*/}
-        <div className="h-full lg:w-3xl w-full">
-          <input
-            type="text"
-            id="noteTitle"
-            name=""
-            placeholder="Untitled note..."
-            value={editingNote?.title || ""}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-4 pb-0 text-3xl font-semibold bg-transparent focus:outline-none border-transparent focus:border-ctp-mauve transition-colors placeholder:text-ctp-overlay0 text-ctp-text"
-          />
-
-          <TiptapEditor
-            key={editingNote?.id}
-            content={editingNote?.content || ""}
-            onChange={setContent}
-          />
-        </div>
+      <div className="flex flex-col w-full h-screen overflow-hidden">
+        {" "}
+        {editingNote ? (
+          <>
+            <input
+              type="text"
+              id="noteTitle"
+              placeholder="Untitled note..."
+              value={editingNote.title || ""}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full self-center p-4 pb-2 pt-2 text-3xl font-semibold focus:outline-none border-transparent focus:border-accent transition-colors placeholder:text-overlay0 text-text bg-surface1"
+            />
+            <div className="h-full lg:w-3xl w-full mx-auto overflow-y-hidden">
+              {" "}
+              {editorView == "parsed" ? (
+                <TiptapEditor
+                  key={editingNote.id}
+                  content={editingNote.content || ""}
+                  onChange={setContent}
+                />
+              ) : (
+                <textarea
+                  value={editingNote.content || ""}
+                  className="w-full font-mono p-4 bg-transparent focus:outline-none resize-none text-text"
+                  style={{
+                    minHeight: "calc(100vh - 55px)",
+                  }}
+                  onChange={setUnparsedContent}
+                />
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full text-overlay0">
+            <div className="text-center">
+              <PlusIcon className="w-16 h-16 mx-auto mb-4 fill-current opacity-50" />
+              <p className="text-lg">Select a note or create a new one</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <StatusIndicator />
@@ -152,14 +185,16 @@ function Home() {
 export default Home;
 
 const Modal = () => {
-  const { setShowModal } = useUIStore();
+  const { setShowModal, modalContent, showModal } = useUIStore();
+  const ModalContent = modalContent;
+  if (!showModal || !ModalContent) return null;
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={() => setShowModal(false)}
-      className="fixed inset-0 h-screen w-screen flex items-center justify-center bg-ctp-crust/70 backdrop-blur-sm z-50"
+      className="fixed inset-0 h-screen w-screen flex items-center justify-center bg-crust/70 backdrop-blur-sm z-50"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -167,16 +202,17 @@ const Modal = () => {
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", duration: 0.3 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md mx-4 bg-ctp-base rounded-xl border-ctp-surface2 border p-8 shadow-2xl"
+        className="relative w-full max-w-md mx-4 bg-base rounded-xl border-surface1 border p-8 shadow-2xl"
       >
         <button
           onClick={() => setShowModal(false)}
-          className="absolute top-4 right-4 p-2 hover:bg-ctp-surface0 rounded-sm transition-colors group"
+          className="absolute top-4 right-4 p-2 hover:bg-surface0 rounded-sm transition-colors group"
           aria-label="Close modal"
         >
-          <XmarkIcon className="w-5 h-5 fill-ctp-overlay0 group-hover:fill-ctp-text transition-colors" />
+          <XmarkIcon className="w-5 h-5 fill-overlay0 group-hover:fill-text transition-colors" />
         </button>
-        <Login />
+        <ModalContent />
+        {/*<Login />*/}
       </motion.div>
     </motion.div>
   );

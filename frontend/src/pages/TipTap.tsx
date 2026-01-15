@@ -79,7 +79,12 @@ export const TiptapEditor = ({
   }
 
   return (
-    <div className="tiptap-editor pt-0!">
+    <div
+      className="tiptap-editor pt-0! overflow-y-scroll"
+      style={{
+        minHeight: "calc(100vh - 55px)",
+      }}
+    >
       {/* Toolbar */}
       {/*<div className="editor-toolbar">
         <div className="toolbar-group">
@@ -88,28 +93,28 @@ export const TiptapEditor = ({
             className={editor.isActive("bold") ? "active" : ""}
             title="Bold (Ctrl+B)"
           >
-            <BoldIcon className="w-4 h-4 fill-ctp-text" />
+            <BoldIcon className="w-4 h-4 fill-text" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleItalic().run()}
             className={editor.isActive("italic") ? "active" : ""}
             title="Italic (Ctrl+I)"
           >
-            <ItalicIcon className="w-4 h-4 fill-ctp-text" />
+            <ItalicIcon className="w-4 h-4 fill-text" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleStrike().run()}
             className={editor.isActive("strike") ? "active" : ""}
             title="Strikethrough"
           >
-            <StrikethroughIcon className="w-4 h-4 fill-ctp-text" />
+            <StrikethroughIcon className="w-4 h-4 fill-text" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleCode().run()}
             className={editor.isActive("code") ? "active" : ""}
             title="Inline code"
           >
-            <CodeIcon className="w-4 h-4 fill-ctp-text" />
+            <CodeIcon className="w-4 h-4 fill-text" />
           </button>
         </div>
 
@@ -153,35 +158,35 @@ export const TiptapEditor = ({
             className={editor.isActive("bulletList") ? "active" : ""}
             title="Bullet list"
           >
-            <ListUlIcon className="w-4 h-4 fill-ctp-text" />
+            <ListUlIcon className="w-4 h-4 fill-text" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             className={editor.isActive("orderedList") ? "active" : ""}
             title="Numbered list"
           >
-            <ListOlIcon className="w-4 h-4 fill-ctp-text" />
+            <ListOlIcon className="w-4 h-4 fill-text" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleTaskList().run()}
             className={editor.isActive("taskList") ? "active" : ""}
             title="Task list"
           >
-            <SquareCheckIcon className="w-4 h-4 fill-ctp-text" />
+            <SquareCheckIcon className="w-4 h-4 fill-text" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
             className={editor.isActive("codeBlock") ? "active" : ""}
             title="Code block"
           >
-            <CodeBracketIcon className="w-4 h-4 fill-ctp-text" />
+            <CodeBracketIcon className="w-4 h-4 fill-text" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             className={editor.isActive("blockquote") ? "active" : ""}
             title="Quote"
           >
-            <QuoteLeftIcon className="w-4 h-4 fill-ctp-text" />
+            <QuoteLeftIcon className="w-4 h-4 fill-text" />
           </button>
         </div>
 

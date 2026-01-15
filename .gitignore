@@ -23,3 +23,5 @@ frontend/src/assets/fontawesome/svg/0.svg
 !square-check.svg
 !code-simple.svg
 !quote-left.svg
+!gear.svg
+frontend/dist/*

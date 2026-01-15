@@ -29,7 +29,7 @@ export const FolderTree = ({ folder, depth = 0 }: FolderTreeProps) => {
             className="overflow-hidden flex flex-col"
           >
             {/* The line container */}
-            <div className="ml-2 pl-3 border-l border-ctp-surface2">
+            <div className="ml-2 pl-3 border-l border-surface1">
               {/* Notes */}
               <div className="flex flex-col gap-0.5">
                 {folder.notes.map((note) => (

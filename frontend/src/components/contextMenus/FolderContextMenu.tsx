@@ -57,7 +57,7 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
     try {
       await createFolderMutation.mutateAsync({
         name: "New Folder",
-        parent_id: folder.id,
+        parentId: folder.id,
       });
       onClose();
     } catch (error) {
@@ -73,7 +73,7 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
           top: y,
           left: x,
         }}
-        className="bg-ctp-surface0 border border-ctp-surface2 rounded-md shadow-lg p-2 min-w-[200px] z-50"
+        className="bg-overlay0 border border-surface1 rounded-md shadow-lg p-2 min-w-[200px] z-50"
         onClick={(e) => e.stopPropagation()}
       >
         <input
@@ -89,7 +89,7 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
           }}
           onBlur={handleRename}
           autoFocus
-          className="w-full px-2 py-1 bg-ctp-surface1 border border-ctp-surface2 rounded text-sm text-ctp-text focus:outline-none focus:border-ctp-mauve"
+          className="w-full px-2 py-1 bg-surface1 border border-surface1 rounded text-sm text-text focus:outline-none focus:border-accent"
         />
       </div>
     );
@@ -102,25 +102,25 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
         top: y,
         left: x,
       }}
-      className="bg-ctp-surface0 border border-ctp-surface2 rounded-md shadow-lg py-1 min-w-[160px] z-50"
+      className="bg-overlay0 border border-surface1 rounded-md shadow-lg py-1 min-w-[160px] z-50"
       onClick={(e) => e.stopPropagation()}
     >
       <button
         onClick={() => setIsRenaming(true)}
-        className="w-full text-left px-3 py-1.5 hover:bg-ctp-surface1 text-sm text-ctp-text transition-colors"
+        className="w-full text-left px-3 py-1.5 hover:bg-surface1 text-sm text-text transition-colors"
       >
         Rename
       </button>
       <button
         onClick={handleCreateSubfolder}
-        className="w-full text-left px-3 py-1.5 hover:bg-ctp-surface1 text-sm text-ctp-text transition-colors"
+        className="w-full text-left px-3 py-1.5 hover:bg-surface1 text-sm text-text transition-colors"
       >
         New Subfolder
       </button>
-      <div className="border-t border-ctp-surface2 my-1" />
+      <div className="border-t border-surface1 my-1" />
       <button
         onClick={handleDelete}
-        className="w-full text-left px-3 py-1.5 hover:bg-ctp-red hover:text-ctp-base text-sm text-ctp-red transition-colors"
+        className="w-full text-left px-3 py-1.5 hover:bg-danger hover:text-base text-sm text-danger transition-colors"
       >
         Delete
       </button>

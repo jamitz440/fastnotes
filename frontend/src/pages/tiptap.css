@@ -7,33 +7,37 @@
 }
 
 *::-webkit-scrollbar-track {
-    @apply bg-ctp-mantle rounded-full;
+    @apply bg-surface0 rounded-full;
 }
 
 *::-webkit-scrollbar-thumb {
-    @apply bg-ctp-surface2 rounded-full;
+    @apply bg-surface1 rounded-full;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-    @apply bg-ctp-overlay0;
+    @apply bg-overlay0;
 }
 
 /* Firefox scrollbar */
 * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-ctp-surface2) var(--color-ctp-mantle);
+    scrollbar-color: var(--color-surface1) var(--color-surface0);
 }
 
 .tiptap-editor {
-    @apply flex flex-col h-full bg-ctp-base;
+    @apply flex flex-col h-full bg-base;
 }
 
 .ProseMirror {
-    @apply text-ctp-text;
+    @apply text-text;
 }
 
 .editor-toolbar {
-    @apply flex gap-2 px-4 bg-ctp-mantle border-b border-ctp-surface2 flex-wrap items-center;
+    @apply flex gap-2 px-4 bg-surface0 border-b border-surface1 flex-wrap items-center;
+}
+
+.editor-content {
+    @apply h-full;
 }
 
 .toolbar-group {
@@ -41,19 +45,19 @@
 }
 
 .toolbar-divider {
-    @apply w-px h-6 bg-ctp-surface2;
+    @apply w-px h-6 bg-surface1;
 }
 
 .editor-toolbar button {
-    @apply p-2 bg-transparent border-none rounded-sm text-ctp-text cursor-pointer transition-all duration-150 text-sm font-semibold min-w-8 flex items-center justify-center;
+    @apply p-2 bg-transparent border-none rounded-sm text-text cursor-pointer transition-all duration-150 text-sm font-semibold min-w-8 flex items-center justify-center;
 }
 
 .editor-toolbar button:hover:not(:disabled) {
-    @apply bg-ctp-surface0;
+    @apply bg-surface0;
 }
 
 .editor-toolbar button.active {
-    @apply bg-ctp-mauve text-ctp-base;
+    @apply bg-accent text-base;
 }
 
 .editor-toolbar button:disabled {
@@ -66,59 +70,59 @@
 
 .ProseMirror p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
-    @apply float-left text-ctp-overlay0 pointer-events-none h-0;
+    @apply float-left text-overlay0 pointer-events-none h-0;
 }
 .ProseMirror ul {
     @apply mb-0!;
 }
 .ProseMirror h1 {
-    @apply text-3xl font-bold text-ctp-mauve mt-8 mb-4;
+    @apply text-3xl font-bold mt-6 mb-4 text-accent;
 }
 
 .ProseMirror h2 {
-    @apply text-2xl font-semibold text-ctp-blue mt-6 mb-3;
+    @apply text-2xl font-semibold text-accent mt-4 mb-3;
 }
 
 .ProseMirror h3 {
-    @apply text-xl font-semibold text-ctp-mauve mt-5 mb-2;
+    @apply text-xl font-semibold text-accent mt-5 mb-2;
 }
 
 .ProseMirror code {
-    @apply bg-ctp-surface0 text-ctp-peach px-1.5 py-0.5 rounded text-sm;
+    @apply bg-surface0 text-accent px-1.5 py-0.5 rounded text-sm;
     font-family: "JetBrains Mono", "Fira Code", monospace;
 }
 
 .ProseMirror .code-block {
-    @apply bg-ctp-surface0 border border-ctp-surface2 rounded-sm p-4 my-4 overflow-x-auto;
+    @apply bg-surface0 border border-surface1 rounded-sm p-4 my-4 overflow-x-auto;
     font-family: "JetBrains Mono", "Fira Code", monospace;
 }
 
 .ProseMirror .code-block code {
-    @apply bg-transparent p-0 text-ctp-text;
+    @apply bg-transparent p-0 text-text;
 }
 
 .ProseMirror blockquote {
-    @apply border-l-4 border-ctp-mauve pl-4 ml-0 text-ctp-subtext0 italic;
+    @apply border-l-4 border-accent pl-4 ml-0 text-subtext italic;
 }
 
 .ProseMirror hr {
-    @apply border-none border-t-2 border-ctp-surface2 my-8;
+    @apply border-none border-t-2 border-surface1 my-8;
 }
 
 .ProseMirror a {
-    @apply text-ctp-blue underline;
+    @apply text-accent underline;
 }
 
 .ProseMirror a:hover {
-    @apply text-ctp-sapphire;
+    @apply text-accent;
 }
 
 .ProseMirror strong {
-    @apply text-ctp-peach font-semibold;
+    @apply text-accent font-semibold;
 }
 
 .ProseMirror em {
-    @apply text-ctp-yellow;
+    @apply text-accent;
 }
 
 /* Task List (Checkboxes) */
@@ -135,7 +139,7 @@
 }
 
 .ProseMirror ul[data-type="taskList"] > li > label input[type="checkbox"] {
-    @apply cursor-pointer m-0 accent-ctp-mauve;
+    @apply cursor-pointer m-0 accent-accent;
 }
 
 .ProseMirror ul[data-type="taskList"] > li > div {
@@ -147,18 +151,18 @@
 }
 
 .ProseMirror li[data-checked="true"] > div > p {
-    @apply line-through text-ctp-overlay0;
+    @apply line-through text-text/40;
     text-decoration-style: wavy;
     text-decoration-thickness: 1px;
 }
 
 .ProseMirror u {
-    @apply decoration-ctp-mauve;
+    @apply decoration-accent;
     /*text-decoration-style: wavy;*/
 }
 
 .ProseMirror li::marker {
-    @apply text-ctp-mauve;
+    @apply text-accent;
 }
 
 /* tiptap.css */
@@ -171,4 +175,20 @@
 .ProseMirror li > p {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
+}
+
+hr {
+    border: none;
+    height: 3px;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--color-accent) 0px,
+        var(--color-accent) 8px,
+        var(--color-accent) 16px
+    );
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 6'%3E%3Cpath d='M0 3 Q 3 0, 6 3 T 12 3 T 18 3 T 24 3' stroke='black' stroke-width='2' fill='none'/%3E%3C/svg%3E")
+        repeat-x;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 6'%3E%3Cpath d='M0 3 Q 3 0, 6 3 T 12 3 T 18 3 T 24 3' stroke='black' stroke-width='2' fill='none'/%3E%3C/svg%3E")
+        repeat-x;
+    margin: 2em 0;
 }

@@ -27,14 +27,10 @@ export const Register = () => {
       onSubmit={handleSubmit}
       className="gap-4 flex flex-col max-w-md mx-auto"
     >
-      <h2 className="text-2xl font-semibold text-ctp-text mb-2">
-        Create Account
-      </h2>
+      <h2 className="text-2xl font-semibold text-text mb-2">Create Account</h2>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-ctp-subtext0">
-          Username
-        </label>
+        <label className="text-sm font-medium text-subtext">Username</label>
         <input
           type="text"
           placeholder="Choose a username"
@@ -45,7 +41,7 @@ export const Register = () => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-ctp-subtext0">Email</label>
+        <label className="text-sm font-medium text-subtext">Email</label>
         <input
           type="email"
           placeholder="Enter your email"
@@ -56,9 +52,7 @@ export const Register = () => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-ctp-subtext0">
-          Password
-        </label>
+        <label className="text-sm font-medium text-subtext">Password</label>
         <input
           type="password"
           className="standard-input"
@@ -69,14 +63,14 @@ export const Register = () => {
       </div>
 
       {error && (
-        <div className="bg-ctp-red/10 border border-ctp-red text-ctp-red px-3 py-2 rounded-sm text-sm">
+        <div className="bg-danger/10 border border-danger text-danger px-3 py-2 rounded-sm text-sm">
           {error}
         </div>
       )}
 
       <button
         type="submit"
-        className="bg-ctp-mauve hover:bg-ctp-mauve/90 text-ctp-base font-semibold px-4 py-2.5 rounded-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ctp-mauve focus:ring-offset-2 focus:ring-offset-ctp-base"
+        className="bg-accent hover:bg-accent/90 text-base font-semibold px-4 py-2.5 rounded-sm transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-base"
       >
         Register
       </button>

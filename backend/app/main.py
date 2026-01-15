@@ -8,8 +8,7 @@ from app.routes import auth, folders, notes, tags
 
 app = FastAPI(title="Notes API")
 
-# CORS - configure via environment variable
-cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:80").split(",")
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,

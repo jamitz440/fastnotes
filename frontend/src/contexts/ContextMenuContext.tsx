@@ -105,7 +105,7 @@ export const ContextMenuProvider = ({
             e.preventDefault();
             closeContextMenu();
           }}
-          className=" h-screen w-screen bg-ctp-crust/25 z-40 fixed top-0 left-0"
+          className=" h-screen w-screen bg-surface1/25 z-40 fixed top-0 left-0"
         ></div>
       )}
       {children}

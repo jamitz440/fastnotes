@@ -36,7 +36,7 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
       await createNoteMutation.mutateAsync({
         title: `${note.title} (Copy)`,
         content: note.content,
-        folder_id: note.folder_id || null,
+        folderId: note.folderId || null,
       });
       onClose();
     } catch (error) {
@@ -57,25 +57,25 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
         top: y,
         left: x,
       }}
-      className="bg-ctp-surface0 border border-ctp-surface2 rounded-md shadow-lg py-1 min-w-[160px] z-50"
+      className="bg-overlay0 border border-surface1 rounded-md shadow-lg py-1 min-w-[160px] z-50"
       onClick={(e) => e.stopPropagation()}
     >
       <button
         onClick={handleRename}
-        className="w-full text-left px-3 py-1.5 hover:bg-ctp-surface1 text-sm text-ctp-text transition-colors"
+        className="w-full text-left px-3 py-1.5 hover:bg-surface1 text-sm text-text transition-colors"
       >
         Rename
       </button>
       <button
         onClick={handleDuplicate}
-        className="w-full text-left px-3 py-1.5 hover:bg-ctp-surface1 text-sm text-ctp-text transition-colors"
+        className="w-full text-left px-3 py-1.5 hover:bg-surface1 text-sm text-text transition-colors"
       >
         Duplicate
       </button>
-      <div className="border-t border-ctp-surface2 my-1" />
+      <div className="border-t border-surface1 my-1" />
       <button
         onClick={handleDelete}
-        className="w-full text-left px-3 py-1.5 hover:bg-ctp-red hover:text-ctp-base text-sm text-ctp-red transition-colors"
+        className="w-full text-left px-3 py-1.5 hover:bg-danger hover:text-base text-sm text-danger transition-colors"
       >
         Delete
       </button>

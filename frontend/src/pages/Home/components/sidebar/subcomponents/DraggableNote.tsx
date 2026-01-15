@@ -39,8 +39,8 @@ export const DraggableNote = ({ note }: { note: NoteRead }) => {
         }}
         className={` rounded-sm px-2 mb-0.5 select-none cursor-pointer font-light transition-all duration-150 flex items-center gap-1 ${
           selectedNote?.id === note.id
-            ? "bg-ctp-mauve text-ctp-base"
-            : "hover:bg-ctp-surface1"
+            ? "bg-accent text-base"
+            : "hover:bg-surface1"
         }`}
       >
         <span className="truncate">

@@ -41,7 +41,7 @@ export const Sidebar = () => {
 
   const { encryptionKey } = useAuthStore();
 
-  const { setSideBarResize, sideBarResize } = useUIStore();
+  const { setSideBarResize, sideBarResize, setColourScheme } = useUIStore();
   useEffect(() => {
     if (newFolder && newFolderRef.current) {
       newFolderRef.current.focus();
@@ -163,7 +163,7 @@ export const Sidebar = () => {
     >
       <div className="flex-row-reverse flex h-screen">
         <div
-          className="h-full bg-ctp-surface0 w-0.5 hover:cursor-ew-resize hover:bg-ctp-mauve transition-colors"
+          className="h-full bg-surface1 w-0.5 hover:cursor-ew-resize hover:bg-accent/50 transition-colors"
           onMouseDown={handleMouseDown}
         ></div>
         <div
@@ -171,7 +171,7 @@ export const Sidebar = () => {
           style={{ width: `${sideBarResize}px` }}
         >
           <SidebarHeader setNewFolder={setNewFolder} />
-          <div className="flex-1 overflow-y-auto bg-ctp-mantle border-r border-ctp-surface2">
+          <div className="flex-1 overflow-y-auto bg-surface1 border-r border-surface1">
             <>
               <div
                 className="w-full p-4 sm:block hidden"
@@ -203,14 +203,14 @@ export const Sidebar = () => {
 
                 {/* Loading state */}
                 {isLoading && (
-                  <div className="flex items-center justify-center py-8 text-ctp-subtext0">
+                  <div className="flex items-center justify-center py-8 text-subtext0">
                     <div className="text-sm">Loading folders...</div>
                   </div>
                 )}
 
                 {/* Error state */}
                 {error && (
-                  <div className="flex items-center justify-center py-8 text-ctp-red">
+                  <div className="flex items-center justify-center py-8 text-danger">
                     <div className="text-sm">Failed to load folders</div>
                   </div>
                 )}
@@ -236,16 +236,19 @@ export const Sidebar = () => {
                   </>
                 )}
               </div>
+              {/*<div className="fixed bottom-1 left-2">
+                <button onClick={setColour}>purple</button>
+              </div>*/}
 
               <DragOverlay>
                 {activeItem?.type === "note" && (
-                  <div className="bg-ctp-surface0 rounded-md px-2 py-1 shadow-lg border border-ctp-mauve">
+                  <div className="bg-surface0 rounded-md px-2 py-1 shadow-lg border border-accent">
                     {activeItem.data.title}
                   </div>
                 )}
                 {activeItem?.type === "folder" && (
-                  <div className="bg-ctp-surface0 rounded-md px-1 py-0.5 shadow-lg flex items-center gap-1 text-sm">
-                    <FolderIcon className="w-3 h-3 fill-ctp-mauve mr-1" />
+                  <div className="bg-surface0 rounded-md px-1 py-0.5 shadow-lg flex items-center gap-1 text-sm">
+                    <FolderIcon className="w-3 h-3 fill-accent mr-1" />
                     {activeItem.data.name}
                   </div>
                 )}

@@ -1,13 +1,12 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
-from sqlmodel import Session, SQLModel, select
-
 from app.auth import create_session, hash_password, require_auth, verify_password
 from app.database import get_session
 from app.models import Session as SessionModel
 from app.models import User
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
+from sqlmodel import Session, SQLModel, select
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -30,8 +29,8 @@ class UserResponse(SQLModel):
     id: int
     username: str
     email: str
-    salt: str  # Client needs this for key derivation
-    wrapped_master_key: str  # Client needs this to unwrap the master key
+    salt: str
+    wrapped_master_key: str
 
 
 @router.post("/register")
@@ -72,7 +71,7 @@ def register(
         key="session_id",
         value=session_id,
         httponly=True,
-        secure=True,  # HTTPS only in production
+        secure=True,
         samesite="lax",
         max_age=30 * 24 * 60 * 60,  # 30 days
     )
@@ -147,15 +146,15 @@ def list_sessions(
     return {"sessions": sessions}
 
 
-@router.delete("/sessions/{session_token}")  # Renamed from session_id
+@router.delete("/sessions/{session_token}")
 def revoke_session(
-    session_token: str,  # Renamed to avoid conflict with Cookie parameter
+    session_token: str,
     current_user: User = Depends(require_auth),
     db: Session = Depends(get_session),
 ):
     session = db.exec(
         select(SessionModel)
-        .where(SessionModel.session_id == session_token)  # Use renamed variable
+        .where(SessionModel.session_id == session_token)
         .where(SessionModel.user_id == current_user.id)
     ).first()
 
