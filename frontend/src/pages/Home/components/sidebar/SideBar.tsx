@@ -163,7 +163,7 @@ export const Sidebar = () => {
     >
       <div className="flex-row-reverse flex h-screen">
         <div
-          className="h-full bg-surface1 w-0.5 hover:cursor-ew-resize hover:bg-accent/50 transition-colors"
+          className="h-full bg-surface1 w-0.5 hover:cursor-ew-resize hover:bg-accent-500/50 transition-colors"
           onMouseDown={handleMouseDown}
         ></div>
         <div
@@ -242,13 +242,13 @@ export const Sidebar = () => {
 
               <DragOverlay>
                 {activeItem?.type === "note" && (
-                  <div className="bg-surface0 rounded-md px-2 py-1 shadow-lg border border-accent">
+                  <div className="bg-surface0 rounded-md px-2 py-1 shadow-lg border border-accent-500">
                     {activeItem.data.title}
                   </div>
                 )}
                 {activeItem?.type === "folder" && (
                   <div className="bg-surface0 rounded-md px-1 py-0.5 shadow-lg flex items-center gap-1 text-sm">
-                    <FolderIcon className="w-3 h-3 fill-accent mr-1" />
+                    <FolderIcon className="w-3 h-3 fill-accent-500 mr-1" />
                     {activeItem.data.name}
                   </div>
                 )}

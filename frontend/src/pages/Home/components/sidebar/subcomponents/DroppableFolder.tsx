@@ -65,10 +65,10 @@ export const DroppableFolder = ({
       >
         {(folder.notes?.length ?? 0) > 0 && (
           <CaretRightIcon
-            className={`w-4 h-4 min-h-4 min-w-4 mr-1 transition-all duration-200 ease-in-out ${collapse ? "rotate-90" : ""} fill-accent`}
+            className={`w-4 h-4 min-h-4 min-w-4 mr-1 transition-all duration-200 ease-in-out ${collapse ? "rotate-90" : ""} fill-accent-500`}
           />
         )}
-        <FolderIcon className="w-4 h-4 min-h-4 min-w-4 fill-accent mr-1" />
+        <FolderIcon className="w-4 h-4 min-h-4 min-w-4 fill-accent-500 mr-1" />
         <span className="truncate">{folder.name}</span>
       </div>
     </div>

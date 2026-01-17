@@ -66,7 +66,7 @@ export const Login = () => {
           id="remember"
           checked={remember}
           onChange={(e) => setRemember(e.target.checked)}
-          className="accent-accent cursor-pointer"
+          className="accent-accent-500 cursor-pointer"
         />
         <label
           htmlFor="remember"
@@ -78,7 +78,7 @@ export const Login = () => {
 
       <button
         type="submit"
-        className="bg-accent hover:bg-accent/90 text-base font-semibold px-4 py-2.5 rounded-sm transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-base"
+        className="bg-accent-500 hover:bg-accent-500/90 text-base font-semibold px-4 py-2.5 rounded-sm transition-colors focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-base"
       >
         Login
       </button>

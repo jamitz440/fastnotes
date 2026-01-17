@@ -2,6 +2,7 @@ import { Note, NoteRead } from "@/api/notes";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Login } from "@/pages/Login";
+import { generateColorScale } from "@/utils/colorScale";
 
 interface HSL {
   H: Number;
@@ -21,6 +22,13 @@ export interface ColourState {
   warn: string;
   success: string;
   danger: string;
+}
+
+interface ColourScales {
+  accent: Record<string, string>;
+  danger: Record<string, string>;
+  success: Record<string, string>;
+  warn: Record<string, string>;
 }
 
 interface UIState {
@@ -49,6 +57,7 @@ interface UIState {
   setSelectedFolder: (id: number | null) => void;
 
   colourScheme: ColourState;
+  colourScales: ColourScales;
   setColourScheme: (colors: ColourState) => void;
 }
 
@@ -104,22 +113,48 @@ export const useUIStore = create<UIState>()(
         warn: "#e2c56f",
       },
 
-      setColourScheme: (colors: ColourState) => {
-        set({ colourScheme: colors });
+      colourScales: {
+        accent: generateColorScale("#e2a16f"),
+        danger: generateColorScale("#e26f6f"),
+        success: generateColorScale("#6fe29b"),
+        warn: generateColorScale("#e2c56f"),
+      },
 
+      setColourScheme: (colors: ColourState) => {
+        // Generate scales for semantic colors
+        const scales: ColourScales = {
+          accent: generateColorScale(colors.accent),
+          danger: generateColorScale(colors.danger),
+          success: generateColorScale(colors.success),
+          warn: generateColorScale(colors.warn),
+        };
+
+        console.log(scales);
+        set({ colourScheme: colors, colourScales: scales });
+
+        // Set base color CSS variables
         Object.entries(colors).forEach(([key, value]) => {
           document.documentElement.style.setProperty(`--color-${key}`, value);
         });
+
+        // Set scale CSS variables
+        const scaleColors = ["accent", "danger", "success", "warn"] as const;
+        scaleColors.forEach((colorName) => {
+          Object.entries(scales[colorName]).forEach(([step, value]) => {
+            document.documentElement.style.setProperty(
+              `--color-${colorName}-${step}`,
+              value,
+            );
+          });
+        });
       },
     }),
-
     {
       name: "ui-store",
-      partialize: (state) => {
-        return {
-          sideBarResize: state.sideBarResize,
-        };
-      },
+      partialize: (state) => ({
+        sideBarResize: state.sideBarResize,
+        colourScheme: state.colourScheme, // Persist colors too
+      }),
     },
   ),
 );

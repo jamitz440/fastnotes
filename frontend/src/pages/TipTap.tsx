@@ -3,6 +3,8 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Markdown } from "tiptap-markdown";
 import { ListKit } from "@tiptap/extension-list";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { createLowlight, all } from "lowlight";
 import "./tiptap.css";
 // @ts-ignore
 import BoldIcon from "../assets/fontawesome/svg/bold.svg?react";
@@ -22,6 +24,9 @@ import SquareCheckIcon from "../assets/fontawesome/svg/square-check.svg?react";
 import CodeBracketIcon from "../assets/fontawesome/svg/code-simple.svg?react";
 // @ts-ignore
 import QuoteLeftIcon from "../assets/fontawesome/svg/quote-left.svg?react";
+import "highlight.js/styles/atom-one-dark.css";
+
+const lowlight = createLowlight(all);
 
 interface TiptapEditorProps {
   content: string;
@@ -36,17 +41,17 @@ export const TiptapEditor = ({
 }: TiptapEditorProps) => {
   const editor = useEditor({
     extensions: [
+      CodeBlockLowlight.configure({
+        lowlight,
+        enableTabIndentation: true,
+      }),
       ListKit,
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
         },
-        codeBlock: {
-          HTMLAttributes: {
-            class: "code-block",
-          },
-        },
         bulletList: false,
+        codeBlock: false,
         orderedList: false,
         listItem: false,
         listKeymap: false,
@@ -63,7 +68,7 @@ export const TiptapEditor = ({
     content,
     editorProps: {
       attributes: {
-        class: "prose prose-invert max-w-none focus:outline-none",
+        class: "prose prose-invert max-w-none pb-4 focus:outline-none",
       },
     },
     onUpdate: ({ editor }) => {
@@ -80,7 +85,7 @@ export const TiptapEditor = ({
 
   return (
     <div
-      className="tiptap-editor pt-0! overflow-y-scroll"
+      className="tiptap-editor pt-0! overflow-y-scroll lg:px-20 pb-2"
       style={{
         minHeight: "calc(100vh - 55px)",
       }}
@@ -196,7 +201,7 @@ export const TiptapEditor = ({
       {/* Editor content */}
       <EditorContent
         editor={editor}
-        className="editor-content h-min-screen p-4! pt-0!"
+        className="editor-content h-min-screen p-4!"
       />
     </div>
   );

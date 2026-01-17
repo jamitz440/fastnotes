@@ -145,9 +145,9 @@ function Home() {
               placeholder="Untitled note..."
               value={editingNote.title || ""}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full self-center p-4 pb-2 pt-2 text-3xl font-semibold focus:outline-none border-transparent focus:border-accent transition-colors placeholder:text-overlay0 text-text bg-surface1"
+              className="w-full self-center p-4 pb-2 pt-2 text-3xl font-semibold focus:outline-none border-transparent focus:border-accent-500 transition-colors placeholder:text-overlay0 text-text bg-surface1"
             />
-            <div className="h-full lg:w-3xl w-full mx-auto overflow-y-hidden">
+            <div className="h-full w-full  overflow-y-hidden">
               {" "}
               {editorView == "parsed" ? (
                 <TiptapEditor

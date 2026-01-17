@@ -89,7 +89,7 @@ export const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
           }}
           onBlur={handleRename}
           autoFocus
-          className="w-full px-2 py-1 bg-surface1 border border-surface1 rounded text-sm text-text focus:outline-none focus:border-accent"
+          className="w-full px-2 py-1 bg-surface1 border border-surface1 rounded text-sm text-text focus:outline-none focus:border-accent-500"
         />
       </div>
     );

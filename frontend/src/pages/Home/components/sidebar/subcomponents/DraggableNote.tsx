@@ -39,7 +39,7 @@ export const DraggableNote = ({ note }: { note: NoteRead }) => {
         }}
         className={` rounded-sm px-2 mb-0.5 select-none cursor-pointer font-light transition-all duration-150 flex items-center gap-1 ${
           selectedNote?.id === note.id
-            ? "bg-accent text-base"
+            ? "bg-accent-500 text-base font-medium"
             : "hover:bg-surface1"
         }`}
       >

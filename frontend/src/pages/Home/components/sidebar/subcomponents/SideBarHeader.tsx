@@ -63,24 +63,24 @@ export const SidebarHeader = ({
       <div className="flex items-center justify-around bg-surface0 rounded-lg p-1 gap-1">
         <button
           onClick={() => setNewFolder(true)}
-          className="hover:bg-accent active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md"
+          className="hover:bg-accent-500 active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md"
           title="New folder"
         >
-          <FolderPlusIcon className="w-5 h-5 group-hover:fill-base transition-all duration-200 fill-accent" />
+          <FolderPlusIcon className="w-5 h-5 group-hover:fill-base transition-all duration-200 fill-accent-500" />
         </button>
         <button
           onClick={handleCreate}
-          className="hover:bg-accent active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md"
+          className="hover:bg-accent-500 active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md"
           title="New note"
         >
-          <FileCirclePlusIcon className="w-5 h-5 group-hover:fill-base transition-all duration-200 fill-accent" />
+          <FileCirclePlusIcon className="w-5 h-5 group-hover:fill-base transition-all duration-200 fill-accent-500" />
         </button>
         <button
           onClick={handleSettings}
-          className="hover:bg-accent active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md"
+          className="hover:bg-accent-500 active:scale-95 group transition-all duration-200 rounded-md p-2 hover:shadow-md"
           title="New note"
         >
-          <GearIcon className="w-5 h-5 group-hover:fill-base transition-all duration-200 fill-accent" />
+          <GearIcon className="w-5 h-5 group-hover:fill-base transition-all duration-200 fill-accent-500" />
         </button>
       </div>
     </div>

@@ -57,7 +57,7 @@
 }
 
 .editor-toolbar button.active {
-    @apply bg-accent text-base;
+    @apply bg-accent-500 text-base;
 }
 
 .editor-toolbar button:disabled {
@@ -72,123 +72,102 @@
     content: attr(data-placeholder);
     @apply float-left text-overlay0 pointer-events-none h-0;
 }
-.ProseMirror ul {
-    @apply mb-0!;
-}
 .ProseMirror h1 {
-    @apply text-3xl font-bold mt-6 mb-4 text-accent;
+    @apply text-3xl font-bold mt-6 mb-4 text-text;
 }
 
 .ProseMirror h2 {
-    @apply text-2xl font-semibold text-accent mt-4 mb-3;
+    @apply text-2xl font-bold text-text mt-5 mb-3;
 }
 
 .ProseMirror h3 {
-    @apply text-xl font-semibold text-accent mt-5 mb-2;
+    @apply text-xl font-semibold text-text mt-4 mb-2;
 }
 
-.ProseMirror code {
-    @apply bg-surface0 text-accent px-1.5 py-0.5 rounded text-sm;
-    font-family: "JetBrains Mono", "Fira Code", monospace;
+.ProseMirror h4 {
+    @apply text-lg font-semibold text-text mt-4 mb-2;
 }
 
-.ProseMirror .code-block {
-    @apply bg-surface0 border border-surface1 rounded-sm p-4 my-4 overflow-x-auto;
-    font-family: "JetBrains Mono", "Fira Code", monospace;
-}
-
-.ProseMirror .code-block code {
-    @apply bg-transparent p-0 text-text;
-}
-
-.ProseMirror blockquote {
-    @apply border-l-4 border-accent pl-4 ml-0 text-subtext italic;
-}
-
-.ProseMirror hr {
-    @apply border-none border-t-2 border-surface1 my-8;
-}
-
-.ProseMirror a {
-    @apply text-accent underline;
-}
-
-.ProseMirror a:hover {
-    @apply text-accent;
+.ProseMirror h5 {
+    @apply font-medium text-text mt-3 mb-2;
 }
 
 .ProseMirror strong {
-    @apply text-accent font-semibold;
+    @apply text-accent-400 font-bold;
 }
 
 .ProseMirror em {
-    @apply text-accent;
+    @apply text-subtext;
 }
 
-/* Task List (Checkboxes) */
-.ProseMirror ul[data-type="taskList"] {
-    @apply list-none p-0;
+.ProseMirror strong em,
+.ProseMirror em strong {
+    @apply text-accent-300 font-bold;
 }
 
-.ProseMirror ul[data-type="taskList"] > li {
-    @apply flex flex-row items-baseline m-0 p-0;
+.ProseMirror code:not(pre code) {
+    @apply bg-surface0 text-accent-400 px-1.5 py-0.5 rounded text-sm border border-surface1;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
 }
 
-.ProseMirror ul[data-type="taskList"] > li > label {
-    @apply flex-none mr-2 select-none flex items-center h-6;
+.ProseMirror pre {
+    @apply bg-surface1 border border-overlay0 rounded-md p-4 my-4 overflow-x-auto;
 }
 
-.ProseMirror ul[data-type="taskList"] > li > label input[type="checkbox"] {
-    @apply cursor-pointer m-0 accent-accent;
+.ProseMirror pre code,
+.ProseMirror pre code.hljs {
+    @apply bg-transparent p-0 text-sm;
+    background: transparent !important;
+    font-family: "JetBrains Mono", monospace;
 }
 
-.ProseMirror ul[data-type="taskList"] > li > div {
-    @apply flex-1;
+.ProseMirror blockquote {
+    @apply border-l-4 border-accent-600 pl-4 ml-0 my-4 text-subtext italic bg-surface0/30 py-2 rounded-r-sm;
 }
 
-.ProseMirror ul[data-type="taskList"] > li > div p {
-    @apply m-0 p-0;
+.ProseMirror a {
+    @apply text-accent-400 no-underline border-b border-accent-600/50 transition-colors;
 }
 
-.ProseMirror li[data-checked="true"] > div > p {
-    @apply line-through text-text/40;
-    text-decoration-style: wavy;
-    text-decoration-thickness: 1px;
-}
-
-.ProseMirror u {
-    @apply decoration-accent;
-    /*text-decoration-style: wavy;*/
+.ProseMirror a:hover {
+    @apply text-accent-300 border-accent-400;
 }
 
 .ProseMirror li::marker {
-    @apply text-accent;
+    @apply text-accent-600;
 }
 
-/* tiptap.css */
-.ProseMirror ul,
+.ProseMirror ul {
+    @apply list-disc pl-6;
+}
+
 .ProseMirror ol {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    @apply list-decimal pl-6;
 }
 
-.ProseMirror li > p {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-}
-
-hr {
+.ProseMirror hr {
     border: none;
     height: 3px;
-    background: repeating-linear-gradient(
-        90deg,
-        var(--color-accent) 0px,
-        var(--color-accent) 8px,
-        var(--color-accent) 16px
-    );
+    background: var(--color-accent-600);
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 6'%3E%3Cpath d='M0 3 Q 3 0, 6 3 T 12 3 T 18 3 T 24 3' stroke='black' stroke-width='2' fill='none'/%3E%3C/svg%3E")
         repeat-x;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 6'%3E%3Cpath d='M0 3 Q 3 0, 6 3 T 12 3 T 18 3 T 24 3' stroke='black' stroke-width='2' fill='none'/%3E%3C/svg%3E")
         repeat-x;
     margin: 2em 0;
+}
+.ProseMirror ul[data-type="taskList"] > li > label input[type="checkbox"] {
+    @apply cursor-pointer m-0 accent-accent-500 w-4 h-4;
+}
+
+.ProseMirror li[data-checked="true"] > div > p {
+    @apply line-through text-overlay1;
+}
+
+.ProseMirror u {
+    @apply decoration-accent-500 underline-offset-2;
+    text-decoration-style: solid;
+}
+
+.ProseMirror ::selection {
+    @apply bg-accent-700/40;
 }
